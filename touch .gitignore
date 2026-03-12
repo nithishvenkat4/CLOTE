@@ -1,0 +1,27 @@
+# Python
+__pycache__/
+*.pyc
+.env
+venv/
+
+# Java
+*.class
+*.jar
+target/
+
+# Node / React
+node_modules/
+build/
+
+# Database
+*.db
+*.sqlite
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Secrets
+*.pem
+*.key
+config.secret.py

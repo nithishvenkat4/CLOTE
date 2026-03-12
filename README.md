@@ -7,8 +7,8 @@ acts as a private cloud server — with full version history,
 multi-client access, and zero third-party dependency.
 
 ## Team
-- Person A — Server & Backend
-- Person B — Client & Networking
+- Team A — Server & Backend
+- Team B — Client & Networking
 
 ## Tech Stack
 - Backend  : Python (FastAPI) + SQLite

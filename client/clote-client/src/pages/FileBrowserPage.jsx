@@ -31,7 +31,7 @@ export default function FileBrowserPage({ onLogout }) {
   const loadFiles = async () => {
     try {
       const data = await getFiles();
-      setFiles(data);
+      setFiles(Array.isArray(data) ? data : data.files || []);
     } catch {
       setError("Could not load files.");
     } finally {
@@ -80,7 +80,7 @@ export default function FileBrowserPage({ onLogout }) {
         )}
         {files.map(file => (
           <div key={file.id} style={styles.fileCard}>
-            <span style={styles.fileName}>{file.name}</span>
+            <span style={styles.fileName}>{file.filename || file.name || "Unnamed"}</span>
             <span style={styles.fileSize}>{(file.size_bytes / 1024).toFixed(1)} KB</span>
           </div>
         ))}

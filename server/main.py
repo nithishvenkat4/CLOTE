@@ -52,4 +52,6 @@ def root():
 # from routes.auth_routes import router as auth_router
 # from routes.file_routes import router as file_router
 from routes.auth_routes import router as auth_router
+from routes.file_routes import router as file_router
 app.include_router(auth_router)
+app.include_router(file_router)

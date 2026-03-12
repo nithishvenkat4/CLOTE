@@ -44,7 +44,9 @@ def on_startup():
 @app.get("/")
 def root():
     return {"app": APP_NAME, "version": APP_VERSION, "status": "running"}
-
+@app.get("/health")
+def health():
+    return {"status": "ok"}
 # ─────────────────────────────────────────────
 # Routers (will be added here as we build them)
 # ─────────────────────────────────────────────

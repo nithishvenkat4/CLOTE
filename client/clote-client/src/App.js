@@ -1,12 +1,23 @@
-import { useState } from "react";
-import { isLoggedIn } from "./services/authService";
-import LoginPage from "./pages/LoginPage";
-import FileBrowserPage from "./pages/FileBrowserPage";
+import { AuthProvider, useAuth } from "./AuthContext";
+import { ToastProvider } from "./ToastContext";
+import AuthPage from "./pages/AuthPage";
+import Dashboard from "./pages/Dashboard";
+import "./index.css";
+
+function AppInner() {
+    const { isAuthed } = useAuth();
+    return isAuthed ? < Dashboard / > : < AuthPage / > ;
+}
 
 export default function App() {
-  const [loggedIn, setLoggedIn] = useState(isLoggedIn());
-
-  return loggedIn
-    ? <FileBrowserPage onLogout={() => setLoggedIn(false)} />
-    : <LoginPage onLogin={() => setLoggedIn(true)} />;
+    return ( <
+        ToastProvider >
+        <
+        AuthProvider >
+        <
+        AppInner / >
+        <
+        /AuthProvider> <
+        /ToastProvider>
+    );
 }

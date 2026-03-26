@@ -44,16 +44,19 @@ def on_startup():
 @app.get("/")
 def root():
     return {"app": APP_NAME, "version": APP_VERSION, "status": "running"}
+
 @app.get("/health")
 def health():
     return {"status": "ok"}
+
 # ─────────────────────────────────────────────
-# Routers (will be added here as we build them)
+# Routers
 # ─────────────────────────────────────────────
 
-# from routes.auth_routes import router as auth_router
-# from routes.file_routes import router as file_router
 from routes.auth_routes import router as auth_router
 from routes.file_routes import router as file_router
+from routes.folder_routes import router as folder_router
+
 app.include_router(auth_router)
 app.include_router(file_router)
+app.include_router(folder_router)

@@ -3,8 +3,8 @@ CLOTE - file_routes.py
 Phase 1 + Phase 2 file management routes.
 
 Schema reference:
-  files    : id, owner_id, filename, stored_name, size_bytes, mime_type,
-             current_version, created_at, updated_at
+  files    : id, owner_id, folder_id, filename, stored_name, size_bytes,
+             mime_type, current_version, created_at, updated_at
   versions : id, file_id, version_num, stored_name, size_bytes,
              uploaded_by, note, created_at
 """
@@ -12,11 +12,11 @@ Schema reference:
 import os
 import shutil
 import uuid
+from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
 from fastapi.responses import FileResponse
 from pydantic import BaseModel
-from typing import Optional
 
 from auth import get_current_user
 from config import FILES_DIR, VERSIONS_DIR
@@ -39,13 +39,21 @@ def _new_stored_name() -> str:
 
 
 def _resolve_version_path(stored_name: str, version_num: int, current_version: int) -> str:
-    """Return the disk path for a given version."""
     if version_num == current_version:
         return os.path.join(FILES_DIR, stored_name)
     path = os.path.join(VERSIONS_DIR, stored_name)
     if not os.path.exists(path):
         path = os.path.join(FILES_DIR, stored_name)
     return path
+
+
+def _touch_folder(db, folder_id: int):
+    """Update folder updated_at whenever its contents change."""
+    if folder_id is not None:
+        db.execute(
+            "UPDATE folders SET updated_at = datetime('now') WHERE id = ?",
+            (folder_id,),
+        )
 
 
 # ── Phase 1 ───────────────────────────────────────────────────────────────────
@@ -55,7 +63,7 @@ async def upload_file(
     file: UploadFile = File(...),
     current_user=Depends(get_current_user),
 ):
-    """Upload a brand-new file (version 1)."""
+    """Upload a brand-new file at root level (version 1)."""
     content = await file.read()
     size_bytes = len(content)
     stored_name = _new_stored_name()
@@ -68,8 +76,8 @@ async def upload_file(
     try:
         cursor = db.execute(
             """
-            INSERT INTO files (owner_id, filename, stored_name, size_bytes, mime_type, current_version)
-            VALUES (?, ?, ?, ?, ?, 1)
+            INSERT INTO files (owner_id, folder_id, filename, stored_name, size_bytes, mime_type, current_version)
+            VALUES (?, NULL, ?, ?, ?, ?, 1)
             """,
             (current_user["id"], file.filename, stored_name, size_bytes, file.content_type),
         )
@@ -101,14 +109,14 @@ async def upload_file(
 
 @router.get("/")
 def list_files(current_user=Depends(get_current_user)):
-    """List all files owned by the current user."""
+    """List all root-level files (not inside any folder) owned by the current user."""
     db = get_db()
     try:
         rows = db.execute(
             """
             SELECT id, filename, size_bytes, mime_type, current_version, created_at, updated_at
             FROM files
-            WHERE owner_id = ?
+            WHERE owner_id = ? AND folder_id IS NULL
             ORDER BY updated_at DESC
             """,
             (current_user["id"],),
@@ -165,7 +173,6 @@ async def upload_new_version(
         if os.path.exists(old_live_path):
             shutil.copy2(old_live_path, archive_path)
 
-        # Write new file to FILES_DIR
         with open(new_path, "wb") as f:
             f.write(content)
 
@@ -185,6 +192,7 @@ async def upload_new_version(
             """,
             (file.filename, new_stored_name, size_bytes, file.content_type, new_version, file_id),
         )
+        _touch_folder(db, row["folder_id"])
         db.commit()
     except HTTPException:
         raise
@@ -268,24 +276,18 @@ def delete_version(
     version_num: int,
     current_user=Depends(get_current_user),
 ):
-    """
-    Delete a specific version of a file.
-    - Cannot delete the current (latest) version.
-    - Cannot delete if only one version exists.
-    """
+    """Delete a specific version. Cannot delete the current or only version."""
     db = get_db()
     try:
         file_row = db.execute("SELECT * FROM files WHERE id = ?", (file_id,)).fetchone()
         _assert_owns(file_row, current_user["id"])
 
-        # Block deletion of the current version
         if version_num == file_row["current_version"]:
             raise HTTPException(
                 status_code=400,
                 detail="Cannot delete the current version. Upload a new version first, or delete the entire file.",
             )
 
-        # Block deletion if only one version exists
         total_versions = db.execute(
             "SELECT COUNT(*) FROM versions WHERE file_id = ?", (file_id,)
         ).fetchone()[0]
@@ -302,7 +304,6 @@ def delete_version(
         if ver is None:
             raise HTTPException(status_code=404, detail=f"Version {version_num} not found")
 
-        # Remove from disk (old versions live in VERSIONS_DIR)
         path = _resolve_version_path(ver["stored_name"], version_num, file_row["current_version"])
         if os.path.exists(path):
             os.remove(path)
@@ -320,9 +321,7 @@ def delete_version(
     finally:
         db.close()
 
-    return {
-        "detail": f"Version {version_num} of file {file_id} deleted successfully."
-    }
+    return {"detail": f"Version {version_num} of file {file_id} deleted successfully."}
 
 
 @router.delete("/{file_id}")
@@ -343,8 +342,9 @@ def delete_file(file_id: int, current_user=Depends(get_current_user)):
             if os.path.exists(path):
                 os.remove(path)
 
-        # ON DELETE CASCADE removes versions rows automatically
+        folder_id = row["folder_id"]
         db.execute("DELETE FROM files WHERE id = ?", (file_id,))
+        _touch_folder(db, folder_id)
         db.commit()
     except HTTPException:
         raise
@@ -367,7 +367,7 @@ def rename_file(
     payload: RenamePayload,
     current_user=Depends(get_current_user),
 ):
-    """Rename a file (metadata only — no disk changes)."""
+    """Rename a file (metadata only)."""
     new_name = payload.filename.strip()
     if not new_name:
         raise HTTPException(status_code=422, detail="filename must not be empty")
@@ -386,3 +386,55 @@ def rename_file(
         db.close()
 
     return {"file_id": file_id, "filename": new_name}
+
+
+class MovePayload(BaseModel):
+    folder_id: Optional[int] = None   # None = move to root
+
+
+@router.patch("/{file_id}/move")
+def move_file(
+    file_id: int,
+    payload: MovePayload,
+    current_user=Depends(get_current_user),
+):
+    """Move a file into a folder (or to root if folder_id is null)."""
+    db = get_db()
+    try:
+        row = db.execute("SELECT * FROM files WHERE id = ?", (file_id,)).fetchone()
+        _assert_owns(row, current_user["id"])
+
+        old_folder_id = row["folder_id"]
+        new_folder_id = payload.folder_id
+
+        # Validate target folder ownership if not moving to root
+        if new_folder_id is not None:
+            folder = db.execute(
+                "SELECT * FROM folders WHERE id = ?", (new_folder_id,)
+            ).fetchone()
+            if folder is None:
+                raise HTTPException(status_code=404, detail="Target folder not found")
+            if folder["owner_id"] != current_user["id"]:
+                raise HTTPException(status_code=403, detail="Access denied to target folder")
+
+        db.execute(
+            "UPDATE files SET folder_id = ?, updated_at = datetime('now') WHERE id = ?",
+            (new_folder_id, file_id),
+        )
+        # Touch both old and new folders
+        _touch_folder(db, old_folder_id)
+        _touch_folder(db, new_folder_id)
+        db.commit()
+    except HTTPException:
+        raise
+    except Exception:
+        db.rollback()
+        raise
+    finally:
+        db.close()
+
+    return {
+        "file_id": file_id,
+        "filename": row["filename"],
+        "moved_to_folder_id": new_folder_id,
+    }

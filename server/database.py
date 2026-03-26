@@ -4,7 +4,6 @@ SQLite connection, schema creation, and DB access helper.
 """
 
 import sqlite3
-from pathlib import Path
 from config import DATABASE_PATH
 
 
@@ -38,17 +37,30 @@ CREATE TABLE IF NOT EXISTS users (
 );
 """
 
-CREATE_FILES_TABLE = """
-CREATE TABLE IF NOT EXISTS files (
+CREATE_FOLDERS_TABLE = """
+CREATE TABLE IF NOT EXISTS folders (
     id            INTEGER PRIMARY KEY AUTOINCREMENT,
     owner_id      INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    filename      TEXT    NOT NULL,
-    stored_name   TEXT    NOT NULL UNIQUE,   -- UUID-based name on disk
-    size_bytes    INTEGER NOT NULL,
-    mime_type     TEXT,
-    current_version INTEGER NOT NULL DEFAULT 1,
+    parent_id     INTEGER REFERENCES folders(id) ON DELETE CASCADE,
+    name          TEXT    NOT NULL,
     created_at    TEXT    NOT NULL DEFAULT (datetime('now')),
-    updated_at    TEXT    NOT NULL DEFAULT (datetime('now'))
+    updated_at    TEXT    NOT NULL DEFAULT (datetime('now')),
+    UNIQUE(owner_id, parent_id, name)
+);
+"""
+
+CREATE_FILES_TABLE = """
+CREATE TABLE IF NOT EXISTS files (
+    id              INTEGER PRIMARY KEY AUTOINCREMENT,
+    owner_id        INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    folder_id       INTEGER REFERENCES folders(id) ON DELETE SET NULL,
+    filename        TEXT    NOT NULL,
+    stored_name     TEXT    NOT NULL UNIQUE,
+    size_bytes      INTEGER NOT NULL,
+    mime_type       TEXT,
+    current_version INTEGER NOT NULL DEFAULT 1,
+    created_at      TEXT    NOT NULL DEFAULT (datetime('now')),
+    updated_at      TEXT    NOT NULL DEFAULT (datetime('now'))
 );
 """
 
@@ -57,10 +69,10 @@ CREATE TABLE IF NOT EXISTS versions (
     id            INTEGER PRIMARY KEY AUTOINCREMENT,
     file_id       INTEGER NOT NULL REFERENCES files(id) ON DELETE CASCADE,
     version_num   INTEGER NOT NULL,
-    stored_name   TEXT    NOT NULL UNIQUE,   -- UUID-based name on disk
+    stored_name   TEXT    NOT NULL UNIQUE,
     size_bytes    INTEGER NOT NULL,
     uploaded_by   INTEGER NOT NULL REFERENCES users(id),
-    note          TEXT,                      -- optional commit-style message
+    note          TEXT,
     created_at    TEXT    NOT NULL DEFAULT (datetime('now')),
     UNIQUE(file_id, version_num)
 );
@@ -81,6 +93,7 @@ def init_db() -> None:
         cursor = conn.cursor()
         cursor.executescript(
             CREATE_USERS_TABLE +
+            CREATE_FOLDERS_TABLE +
             CREATE_FILES_TABLE +
             CREATE_VERSIONS_TABLE
         )

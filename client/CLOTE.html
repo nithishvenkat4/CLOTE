@@ -1,0 +1,1551 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CLOTE</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
+    <style>
+         :root {
+            --bg: #0d1117;
+            --surface: #161b22;
+            --elevated: #1c2128;
+            --overlay: #21262d;
+            --hover: #262c36;
+            --border: #30363d;
+            --border2: #21262d;
+            --text: #e6edf3;
+            --text2: #8b949e;
+            --text3: #484f58;
+            --accent: #58a6ff;
+            --accentH: #79b8ff;
+            --accentD: #1f3a5f;
+            --green: #3fb950;
+            --greenD: #1a3a23;
+            --red: #f85149;
+            --redD: #3a1a1a;
+            --yellow: #d29922;
+            --purple: #bc8cff;
+            --sidebar: 240px;
+            --topbar: 52px;
+            --r: 6px;
+            --mono: 'JetBrains Mono', monospace;
+            --ui: 'Inter', sans-serif;
+        }
+        
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0
+        }
+        
+        html,
+        body {
+            height: 100%;
+            background: var(--bg);
+            color: var(--text);
+            font-family: var(--ui);
+            font-size: 14px;
+            -webkit-font-smoothing: antialiased
+        }
+        
+        button {
+            font-family: var(--ui);
+            font-size: 13px;
+            cursor: pointer;
+            border: none;
+            outline: none
+        }
+        
+        input {
+            font-family: var(--ui);
+            font-size: 13px;
+            background: var(--overlay);
+            border: 1px solid var(--border);
+            border-radius: var(--r);
+            color: var(--text);
+            padding: 7px 10px;
+            outline: none;
+            width: 100%
+        }
+        
+        input:focus {
+            border-color: var(--accent)
+        }
+        
+        input::placeholder {
+            color: var(--text3)
+        }
+        
+        ::-webkit-scrollbar {
+            width: 5px;
+            height: 5px
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: transparent
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: var(--border);
+            border-radius: 3px
+        }
+        /* ── layout ── */
+        
+        #app {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden
+        }
+        
+        .page {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden
+        }
+        
+        .grid-bg {
+            position: absolute;
+            inset: 0;
+            background-image: linear-gradient(var(--border2) 1px, transparent 1px), linear-gradient(90deg, var(--border2) 1px, transparent 1px);
+            background-size: 40px 40px;
+            opacity: .35
+        }
+        
+        .glow {
+            position: absolute;
+            top: 35%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 500px;
+            height: 300px;
+            background: radial-gradient(ellipse, rgba(88, 166, 255, .07) 0%, transparent 70%);
+            pointer-events: none
+        }
+        /* ── auth card ── */
+        
+        .auth-card {
+            position: relative;
+            z-index: 1;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 36px 40px;
+            width: 380px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, .6);
+            animation: pop .2s ease
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 4px
+        }
+        
+        .logo-hex {
+            font-size: 26px;
+            color: var(--accent)
+        }
+        
+        .logo-text {
+            font-family: var(--mono);
+            font-size: 20px;
+            font-weight: 600;
+            letter-spacing: .1em
+        }
+        
+        .tagline {
+            color: var(--text3);
+            font-size: 11px;
+            margin-bottom: 24px;
+            font-family: var(--mono)
+        }
+        
+        .tabs {
+            display: flex;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 20px
+        }
+        
+        .tab {
+            background: transparent;
+            color: var(--text3);
+            padding: 8px 16px;
+            font-size: 13px;
+            font-weight: 500;
+            border-bottom: 2px solid transparent;
+            margin-bottom: -1px;
+            transition: .15s
+        }
+        
+        .tab.active {
+            color: var(--accent);
+            border-bottom-color: var(--accent)
+        }
+        
+        .tab:hover:not(.active) {
+            color: var(--text2)
+        }
+        
+        .field {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            margin-bottom: 12px
+        }
+        
+        .field label {
+            font-size: 11px;
+            color: var(--text2);
+            font-weight: 500
+        }
+        
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 7px 14px;
+            border-radius: var(--r);
+            font-weight: 500;
+            font-size: 13px;
+            white-space: nowrap;
+            transition: .15s
+        }
+        
+        .btn-primary {
+            background: var(--accent);
+            color: #0d1117
+        }
+        
+        .btn-primary:hover {
+            background: var(--accentH)
+        }
+        
+        .btn-primary:disabled {
+            opacity: .4;
+            cursor: not-allowed
+        }
+        
+        .btn-ghost {
+            background: transparent;
+            color: var(--text2);
+            border: 1px solid var(--border)
+        }
+        
+        .btn-ghost:hover {
+            background: var(--hover);
+            color: var(--text)
+        }
+        
+        .btn-danger {
+            background: transparent;
+            color: var(--red);
+            border: 1px solid var(--redD)
+        }
+        
+        .btn-danger:hover {
+            background: var(--redD)
+        }
+        
+        .btn-full {
+            width: 100%;
+            justify-content: center;
+            margin-top: 4px
+        }
+        
+        .auth-footer {
+            margin-top: 16px;
+            text-align: center;
+            font-size: 12px;
+            color: var(--text3)
+        }
+        
+        .link-btn {
+            background: none;
+            color: var(--accent);
+            font-size: 12px;
+            padding: 0
+        }
+        
+        .link-btn:hover {
+            text-decoration: underline;
+            color: var(--accentH)
+        }
+        /* ── dashboard ── */
+        
+        .topbar {
+            height: var(--topbar);
+            min-height: var(--topbar);
+            background: var(--surface);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 20px;
+            z-index: 10
+        }
+        
+        .topbar-left {
+            display: flex;
+            align-items: center;
+            gap: 8px
+        }
+        
+        .topbar-logo {
+            font-family: var(--mono);
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--accent);
+            letter-spacing: .08em
+        }
+        
+        .topbar-sep {
+            color: var(--text3)
+        }
+        
+        .topbar-bc {
+            font-size: 13px;
+            color: var(--text2)
+        }
+        
+        .topbar-right {
+            display: flex;
+            align-items: center;
+            gap: 10px
+        }
+        
+        .topbar-user {
+            font-size: 12px;
+            color: var(--text3);
+            font-family: var(--mono)
+        }
+        
+        .dash-body {
+            display: flex;
+            flex: 1;
+            overflow: hidden
+        }
+        /* ── sidebar ── */
+        
+        .sidebar {
+            width: var(--sidebar);
+            min-width: var(--sidebar);
+            background: var(--surface);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden
+        }
+        
+        .sb-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 12px;
+            border-bottom: 1px solid var(--border2)
+        }
+        
+        .sb-title {
+            font-size: 10px;
+            font-weight: 600;
+            letter-spacing: .12em;
+            color: var(--text3);
+            font-family: var(--mono)
+        }
+        
+        .sb-add {
+            background: transparent;
+            color: var(--text3);
+            font-size: 18px;
+            padding: 0 4px;
+            line-height: 1;
+            border-radius: 4px
+        }
+        
+        .sb-add:hover {
+            background: var(--hover);
+            color: var(--text)
+        }
+        
+        .sb-new {
+            padding: 6px 10px;
+            border-bottom: 1px solid var(--border2)
+        }
+        
+        .sb-new input {
+            font-size: 12px;
+            padding: 5px 8px
+        }
+        
+        .folder-tree {
+            flex: 1;
+            overflow-y: auto;
+            padding: 4px 0
+        }
+        
+        .sb-empty {
+            padding: 12px 16px;
+            font-size: 12px;
+            color: var(--text3);
+            font-family: var(--mono)
+        }
+        
+        .f-row {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            height: 28px;
+            cursor: pointer;
+            border-radius: 4px;
+            margin: 1px 6px;
+            padding-right: 8px;
+            color: var(--text2);
+            font-size: 13px;
+            transition: .15s;
+            user-select: none
+        }
+        
+        .f-row:hover {
+            background: var(--hover);
+            color: var(--text)
+        }
+        
+        .f-row.active {
+            background: var(--accentD);
+            color: var(--accent)
+        }
+        
+        .f-chev {
+            font-size: 13px;
+            color: var(--text3);
+            transition: transform .15s;
+            display: inline-block;
+            width: 12px;
+            text-align: center
+        }
+        
+        .f-chev.open {
+            transform: rotate(90deg)
+        }
+        
+        .f-icon {
+            font-size: 12px;
+            opacity: .7
+        }
+        
+        .f-name {
+            flex: 1;
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+            font-size: 13px
+        }
+        /* ── main ── */
+        
+        .main-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            background: var(--bg)
+        }
+        
+        .toolbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 20px;
+            border-bottom: 1px solid var(--border2);
+            gap: 12px
+        }
+        
+        .toolbar-left,
+        .toolbar-right {
+            display: flex;
+            align-items: center;
+            gap: 8px
+        }
+        
+        .search {
+            width: 220px
+        }
+        
+        .new-folder-bar {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 20px;
+            background: var(--surface);
+            border-bottom: 1px solid var(--border2)
+        }
+        
+        .new-folder-bar input {
+            max-width: 240px
+        }
+        
+        .file-grid {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(155px, 1fr));
+            gap: 10px;
+            align-content: start
+        }
+        
+        .card {
+            background: var(--surface);
+            border: 1px solid var(--border2);
+            border-radius: 8px;
+            padding: 14px 12px 10px;
+            cursor: pointer;
+            transition: border-color .15s, background .15s, transform .1s;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            user-select: none
+        }
+        
+        .card:hover {
+            border-color: var(--border);
+            background: var(--elevated);
+            transform: translateY(-1px)
+        }
+        
+        .card:active {
+            transform: translateY(0)
+        }
+        
+        .card.folder {
+            border-color: var(--accentD)
+        }
+        
+        .card.folder:hover {
+            border-color: var(--accent)
+        }
+        
+        .card-icon {
+            font-size: 26px;
+            line-height: 1;
+            margin-bottom: 2px
+        }
+        
+        .card-name {
+            font-size: 12px;
+            font-weight: 500;
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: ellipsis
+        }
+        
+        .card-meta {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 11px;
+            color: var(--text3);
+            font-family: var(--mono)
+        }
+        
+        .card-date {
+            font-size: 10px;
+            color: var(--text3);
+            font-family: var(--mono)
+        }
+        
+        .tag {
+            display: inline-flex;
+            align-items: center;
+            padding: 1px 7px;
+            border-radius: 20px;
+            font-size: 10px;
+            font-weight: 600;
+            font-family: var(--mono)
+        }
+        
+        .tag-blue {
+            background: var(--accentD);
+            color: var(--accent)
+        }
+        
+        .tag-green {
+            background: var(--greenD);
+            color: var(--green)
+        }
+        
+        .empty-state {
+            grid-column: 1/-1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 60px 20px;
+            gap: 8px;
+            color: var(--text3);
+            text-align: center
+        }
+        
+        .empty-icon {
+            font-size: 36px;
+            opacity: .25;
+            margin-bottom: 8px
+        }
+        
+        .empty-hint {
+            font-size: 12px;
+            opacity: .6
+        }
+        /* ── spinner ── */
+        
+        .spinner-wrap {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center
+        }
+        
+        .spinner {
+            width: 24px;
+            height: 24px;
+            border: 2px solid var(--border);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin .7s linear infinite
+        }
+        
+        @keyframes spin {
+            to {
+                transform: rotate(360deg)
+            }
+        }
+        /* ── modal ── */
+        
+        .backdrop {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, .7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            animation: fadeIn .15s ease
+        }
+        
+        .modal {
+            background: var(--elevated);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 24px;
+            min-width: 340px;
+            max-width: 560px;
+            width: 100%;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, .6);
+            animation: pop .15s ease
+        }
+        
+        .modal-title {
+            font-size: 15px;
+            font-weight: 600;
+            margin-bottom: 16px
+        }
+        
+        .modal-actions {
+            display: flex;
+            gap: 8px;
+            justify-content: flex-end;
+            margin-top: 20px
+        }
+        
+        .modal-close {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            background: transparent;
+            color: var(--text3);
+            font-size: 16px;
+            padding: 2px 6px;
+            border-radius: 4px
+        }
+        
+        .modal-close:hover {
+            background: var(--hover);
+            color: var(--text)
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 16px;
+            position: relative
+        }
+        /* ── version modal ── */
+        
+        .ver-modal {
+            max-height: 80vh;
+            display: flex;
+            flex-direction: column
+        }
+        
+        .ver-filename {
+            font-size: 12px;
+            color: var(--text3);
+            font-family: var(--mono);
+            margin-top: 2px
+        }
+        
+        .ver-upload {
+            padding-bottom: 14px;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 14px
+        }
+        
+        .ver-upload-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap
+        }
+        
+        .ver-list {
+            flex: 1;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 6px
+        }
+        
+        .ver-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 12px;
+            border-radius: 8px;
+            background: var(--overlay);
+            border: 1px solid var(--border2);
+            gap: 10px
+        }
+        
+        .ver-item.current {
+            border-color: var(--greenD);
+            background: rgba(63, 185, 80, .04)
+        }
+        
+        .ver-left {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex: 1;
+            min-width: 0
+        }
+        
+        .ver-meta {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 11px;
+            color: var(--text3);
+            font-family: var(--mono);
+            flex-wrap: wrap
+        }
+        
+        .ver-note {
+            color: var(--text2);
+            font-style: italic
+        }
+        
+        .ver-actions {
+            display: flex;
+            gap: 6px;
+            flex-shrink: 0
+        }
+        
+        .ver-empty {
+            padding: 20px;
+            text-align: center;
+            color: var(--text3);
+            font-size: 13px;
+            font-family: var(--mono)
+        }
+        
+        .file-input-label {
+            display: inline-flex;
+            cursor: pointer
+        }
+        /* ── ctx menu ── */
+        
+        .ctx {
+            position: fixed;
+            background: var(--elevated);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 4px;
+            min-width: 175px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, .5);
+            z-index: 2000;
+            animation: fadeIn .1s ease
+        }
+        
+        .ctx-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 7px 10px;
+            border-radius: 4px;
+            color: var(--text2);
+            font-size: 13px;
+            cursor: pointer;
+            transition: .12s
+        }
+        
+        .ctx-item:hover {
+            background: var(--hover);
+            color: var(--text)
+        }
+        
+        .ctx-item.danger {
+            color: var(--red)
+        }
+        
+        .ctx-item.danger:hover {
+            background: var(--redD)
+        }
+        
+        .ctx-div {
+            height: 1px;
+            background: var(--border);
+            margin: 4px 0
+        }
+        /* ── toast ── */
+        
+        .toasts {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            z-index: 9999
+        }
+        
+        .toast {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 16px;
+            border-radius: 8px;
+            background: var(--elevated);
+            border: 1px solid var(--border);
+            box-shadow: 0 4px 16px rgba(0, 0, 0, .5);
+            font-size: 13px;
+            animation: slideIn .2s ease;
+            min-width: 240px;
+            max-width: 360px
+        }
+        
+        .toast.success {
+            border-left: 3px solid var(--green)
+        }
+        
+        .toast.error {
+            border-left: 3px solid var(--red)
+        }
+        
+        .toast.info {
+            border-left: 3px solid var(--accent)
+        }
+        
+        @keyframes pop {
+            from {
+                transform: scale(.96);
+                opacity: 0
+            }
+            to {
+                transform: scale(1);
+                opacity: 1
+            }
+        }
+        
+        @keyframes fadeIn {
+            from {
+                opacity: 0
+            }
+            to {
+                opacity: 1
+            }
+        }
+        
+        @keyframes slideIn {
+            from {
+                transform: translateX(16px);
+                opacity: 0
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div id="app"></div>
+    <div class="toasts" id="toasts"></div>
+
+    <script>
+        // ── CONFIG ────────────────────────────────────────────────────────────────────
+        const BASE = "http://10.252.41.216:8000";
+
+        // ── STATE ─────────────────────────────────────────────────────────────────────
+        let state = {
+            token: localStorage.getItem("clote_token") || null,
+            username: localStorage.getItem("clote_user") || null,
+            authMode: "login",
+            selectedFolder: null,
+            files: [],
+            folders: [],
+            loading: false,
+            search: "",
+            showNewFolder: false,
+            newFolderName: "",
+            ctx: null,
+            versionFile: null,
+            renameTarget: null,
+            versionData: null,
+            versionLoading: false,
+        };
+
+        function setState(patch) {
+            Object.assign(state, patch);
+            render();
+        }
+
+        // ── API ───────────────────────────────────────────────────────────────────────
+        function ah(extra) {
+            return Object.assign({
+                Authorization: "Bearer " + state.token
+            }, extra || {});
+        }
+        async function api(method, path, body, isForm) {
+            const opts = {
+                method,
+                headers: ah(isForm ? {} : (body ? {
+                    "Content-Type": "application/json"
+                } : {}))
+            };
+            if (body) opts.body = isForm ? body : JSON.stringify(body);
+            const res = await fetch(BASE + path, opts);
+            if (!res.ok) {
+                const e = await res.json().catch(() => ({
+                    detail: res.statusText
+                }));
+                throw new Error(e.detail || "Request failed");
+            }
+            return res.json();
+        }
+        async function apiDownload(path, filename) {
+            const res = await fetch(BASE + path, {
+                headers: ah()
+            });
+            if (!res.ok) throw new Error("Download failed");
+            const blob = await res.blob();
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = filename;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        // ── TOAST ─────────────────────────────────────────────────────────────────────
+        function toast(msg, type) {
+            type = type || "info";
+            const icons = {
+                success: "✓",
+                error: "✕",
+                info: "ℹ"
+            };
+            const el = document.createElement("div");
+            el.className = "toast " + type;
+            el.innerHTML = "<span>" + icons[type] + "</span><span>" + msg + "</span>";
+            document.getElementById("toasts").appendChild(el);
+            setTimeout(() => el.remove(), 3500);
+        }
+
+        // ── LOAD DATA ─────────────────────────────────────────────────────────────────
+        async function loadContents() {
+            setState({
+                loading: true
+            });
+            try {
+                if (!state.selectedFolder) {
+                    const [files, folders] = await Promise.all([
+                        api("GET", "/files/"),
+                        api("GET", "/folders/"),
+                    ]);
+                    setState({
+                        files,
+                        folders,
+                        loading: false
+                    });
+                } else {
+                    const data = await api("GET", "/folders/" + state.selectedFolder.id);
+                    setState({
+                        files: data.files || [],
+                        folders: data.subfolders || [],
+                        loading: false
+                    });
+                }
+            } catch (e) {
+                toast(e.message, "error");
+                setState({
+                    loading: false
+                });
+            }
+        }
+
+        // ── AUTH ──────────────────────────────────────────────────────────────────────
+        async function handleLogin(e) {
+            e.preventDefault();
+            const username = document.getElementById("inp-username").value.trim();
+            const password = document.getElementById("inp-password").value.trim();
+            if (!username || !password) return;
+            const btn = document.getElementById("auth-btn");
+            btn.disabled = true;
+            btn.textContent = "Please wait…";
+            try {
+                if (state.authMode === "register") {
+                    await api("POST", "/auth/register", {
+                        username,
+                        password
+                    });
+                }
+                const data = await api("POST", "/auth/login", {
+                    username,
+                    password
+                });
+                localStorage.setItem("clote_token", data.access_token);
+                localStorage.setItem("clote_user", username);
+                setState({
+                    token: data.access_token,
+                    username
+                });
+                toast("Welcome, " + username, "success");
+                loadContents();
+            } catch (e) {
+                toast(e.message, "error");
+                btn.disabled = false;
+                btn.textContent = state.authMode === "login" ? "Sign in" : "Create account";
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem("clote_token");
+            localStorage.removeItem("clote_user");
+            setState({
+                token: null,
+                username: null,
+                selectedFolder: null,
+                files: [],
+                folders: []
+            });
+        }
+
+        // ── FILE ACTIONS ──────────────────────────────────────────────────────────────
+        async function handleUpload(e) {
+            const files = Array.from(e.target.files);
+            if (!files.length) return;
+            try {
+                if (state.selectedFolder) {
+                    const fd = new FormData();
+                    files.forEach(f => fd.append("files", f));
+                    await api("POST", "/folders/" + state.selectedFolder.id + "/upload", fd, true);
+                    toast(files.length + " file(s) uploaded to " + state.selectedFolder.name, "success");
+                } else {
+                    for (const f of files) {
+                        const fd = new FormData();
+                        fd.append("file", f);
+                        await api("POST", "/files/upload", fd, true);
+                    }
+                    toast(files.length + " file(s) uploaded", "success");
+                }
+                loadContents();
+            } catch (e) {
+                toast(e.message, "error");
+            }
+            e.target.value = "";
+        }
+
+        async function deleteFile(file) {
+            try {
+                await api("DELETE", "/files/" + file.id);
+                toast(file.filename + " deleted", "success");
+                loadContents();
+            } catch (e) {
+                toast(e.message, "error");
+            }
+        }
+
+        async function renameFile(file, newName) {
+            try {
+                await api("PATCH", "/files/" + file.id + "/rename", {
+                    filename: newName
+                });
+                toast("Renamed", "success");
+                loadContents();
+            } catch (e) {
+                toast(e.message, "error");
+            }
+        }
+
+        // ── FOLDER ACTIONS ────────────────────────────────────────────────────────────
+        async function createFolder(name, parentId) {
+            try {
+                await api("POST", "/folders/", {
+                    name,
+                    parent_id: parentId || null
+                });
+                toast("Folder created", "success");
+                loadContents();
+            } catch (e) {
+                toast(e.message, "error");
+            }
+        }
+
+        async function deleteFolder(folder) {
+            try {
+                await api("DELETE", "/folders/" + folder.id);
+                toast(folder.name + " deleted", "success");
+                if (state.selectedFolder && state.selectedFolder.id === folder.id) setState({
+                    selectedFolder: null
+                });
+                loadContents();
+            } catch (e) {
+                toast(e.message, "error");
+            }
+        }
+
+        async function renameFolder(folder, newName) {
+            try {
+                await api("PATCH", "/folders/" + folder.id + "/rename", {
+                    name: newName
+                });
+                toast("Renamed", "success");
+                loadContents();
+            } catch (e) {
+                toast(e.message, "error");
+            }
+        }
+
+        // ── VERSIONS ──────────────────────────────────────────────────────────────────
+        async function openVersions(file) {
+            setState({
+                versionFile: file,
+                versionData: null,
+                versionLoading: true
+            });
+            try {
+                const data = await api("GET", "/files/" + file.id + "/versions");
+                setState({
+                    versionData: data,
+                    versionLoading: false
+                });
+            } catch (e) {
+                toast(e.message, "error");
+                setState({
+                    versionLoading: false
+                });
+            }
+        }
+
+        async function handleVersionUpload(e) {
+            e.preventDefault();
+            const fileInput = document.getElementById("ver-file-input");
+            const note = document.getElementById("ver-note-input").value;
+            if (!fileInput.files[0]) return;
+            const fd = new FormData();
+            fd.append("file", fileInput.files[0]);
+            if (note) fd.append("note", note);
+            try {
+                await api("POST", "/files/" + state.versionFile.id + "/upload", fd, true);
+                toast("New version uploaded", "success");
+                openVersions(state.versionFile);
+                loadContents();
+            } catch (e) {
+                toast(e.message, "error");
+            }
+        }
+
+        async function downloadVersion(fileId, vNum, filename) {
+            try {
+                await apiDownload("/files/" + fileId + "/versions/" + vNum + "/download", filename + "_v" + vNum);
+            } catch (e) {
+                toast(e.message, "error");
+            }
+        }
+
+        async function deleteVersion(fileId, vNum) {
+            try {
+                await api("DELETE", "/files/" + fileId + "/versions/" + vNum);
+                toast("Version " + vNum + " deleted", "success");
+                openVersions(state.versionFile);
+            } catch (e) {
+                toast(e.message, "error");
+            }
+        }
+
+        // ── CONTEXT MENU ──────────────────────────────────────────────────────────────
+        function showCtx(e, items) {
+            e.preventDefault();
+            setState({
+                ctx: {
+                    x: e.clientX,
+                    y: e.clientY,
+                    items
+                }
+            });
+        }
+
+        document.addEventListener("click", () => {
+            if (state.ctx) setState({
+                ctx: null
+            });
+        });
+
+        // ── RENAME MODAL ──────────────────────────────────────────────────────────────
+        function showRename(target) {
+            setState({
+                renameTarget: target
+            });
+        }
+
+        function handleRenameConfirm() {
+            const val = document.getElementById("rename-input").value.trim();
+            if (!val) return;
+            const t = state.renameTarget;
+            setState({
+                renameTarget: null
+            });
+            if (t.type === "file") renameFile(t.item, val);
+            else renameFolder(t.item, val);
+        }
+
+        // ── HELPERS ───────────────────────────────────────────────────────────────────
+        function fmtBytes(b) {
+            if (!b) return "—";
+            if (b < 1024) return b + " B";
+            if (b < 1048576) return (b / 1024).toFixed(1) + " KB";
+            return (b / 1048576).toFixed(2) + " MB";
+        }
+
+        function fmtDate(iso) {
+            return new Date(iso).toLocaleString(undefined, {
+                month: "short",
+                day: "numeric",
+                hour: "2-digit",
+                minute: "2-digit"
+            });
+        }
+
+        function fileIcon(filename) {
+            const ext = filename.split(".").pop().toLowerCase();
+            const map = {
+                pdf: "📄",
+                png: "🖼",
+                jpg: "🖼",
+                jpeg: "🖼",
+                mp4: "🎬",
+                mp3: "🎵",
+                zip: "📦",
+                txt: "📝",
+                js: "📜",
+                py: "🐍",
+                md: "📋",
+                docx: "📝",
+                xlsx: "📊"
+            };
+            return map[ext] || "📁";
+        }
+
+        function esc(s) {
+            return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+        }
+
+        // ── RENDER ────────────────────────────────────────────────────────────────────
+        function render() {
+            const app = document.getElementById("app");
+            if (!state.token) {
+                app.innerHTML = renderAuth();
+            } else {
+                app.innerHTML = renderDash();
+            }
+            bindEvents();
+        }
+
+        function renderAuth() {
+            return '<div class="page">' +
+                '<div class="grid-bg"></div><div class="glow"></div>' +
+                '<div class="auth-card">' +
+                '<div class="logo"><span class="logo-hex">⬡</span><span class="logo-text">CLOTE</span></div>' +
+                '<p class="tagline">self-hosted file management</p>' +
+                '<div class="tabs">' +
+                '<button class="tab' + (state.authMode === "login" ? " active" : "") + '" onclick="setState({authMode:\'login\'})">Login</button>' +
+                '<button class="tab' + (state.authMode === "register" ? " active" : "") + '" onclick="setState({authMode:\'register\'})">Register</button>' +
+                '</div>' +
+                '<form onsubmit="handleLogin(event)">' +
+                '<div class="field"><label>Username</label><input id="inp-username" placeholder="your_username" autocomplete="username" /></div>' +
+                '<div class="field"><label>Password</label><input id="inp-password" type="password" placeholder="••••••••" autocomplete="current-password" /></div>' +
+                '<button id="auth-btn" class="btn btn-primary btn-full">' + (state.authMode === "login" ? "Sign in" : "Create account") + '</button>' +
+                '</form>' +
+                '<p class="auth-footer">' + (state.authMode === "login" ?
+                    'No account? <button class="link-btn" onclick="setState({authMode:\'register\'})">Register</button>' :
+                    'Have one? <button class="link-btn" onclick="setState({authMode:\'login\'})">Sign in</button>') + '</p>' +
+                '</div>' +
+                '</div>';
+        }
+
+        function renderDash() {
+            const bc = state.selectedFolder ? esc(state.selectedFolder.name) : "Root";
+            const filtered_files = state.files.filter(f => f.filename.toLowerCase().includes(state.search.toLowerCase()));
+            const filtered_folders = state.folders.filter(f => f.name.toLowerCase().includes(state.search.toLowerCase()));
+
+            let cards = "";
+            filtered_folders.forEach(function(folder) {
+                cards += '<div class="card folder" ondblclick="setState({selectedFolder:' + JSON.stringify(folder) + '})" oncontextmenu="showCtx(event,[' +
+                    '{icon:\'↳\',label:\'Open\',action:\'openFolder\',id:' + folder.id + '},' +
+                    '{icon:\'✎\',label:\'Rename\',action:\'renameFolder\',id:' + folder.id + '},' +
+                    '{sep:true},' +
+                    '{icon:\'✕\',label:\'Delete\',action:\'deleteFolder\',id:' + folder.id + ',danger:true}' +
+                    '])">' +
+                    '<div class="card-icon" style="color:var(--accent)">⬡</div>' +
+                    '<div class="card-name">' + esc(folder.name) + '</div>' +
+                    '<div class="card-meta">Folder</div>' +
+                    '</div>';
+            });
+
+            filtered_files.forEach(function(file) {
+                cards += '<div class="card" ondblclick="apiDownload(\'/files/' + file.id + '/download\',\'' + esc(file.filename) + '\')" oncontextmenu="showCtx(event,[' +
+                    '{icon:\'↓\',label:\'Download\',action:\'downloadFile\',id:' + file.id + '},' +
+                    '{icon:\'⏱\',label:\'Versions\',action:\'openVersions\',id:' + file.id + '},' +
+                    '{icon:\'✎\',label:\'Rename\',action:\'renameFile\',id:' + file.id + '},' +
+                    '{sep:true},' +
+                    '{icon:\'✕\',label:\'Delete\',action:\'deleteFile\',id:' + file.id + ',danger:true}' +
+                    '])">' +
+                    '<div class="card-icon">' + fileIcon(file.filename) + '</div>' +
+                    '<div class="card-name">' + esc(file.filename) + '</div>' +
+                    '<div class="card-meta">' + fmtBytes(file.size_bytes) + '<span class="tag tag-blue">v' + file.current_version + '</span></div>' +
+                    '<div class="card-date">' + fmtDate(file.updated_at) + '</div>' +
+                    '</div>';
+            });
+
+            if (!cards) {
+                cards = '<div class="empty-state"><div class="empty-icon">⬡</div><p>Empty ' + bc + '</p><p class="empty-hint">Upload files or create a folder</p></div>';
+            }
+
+            const content = state.loading ?
+                '<div class="spinner-wrap"><div class="spinner"></div></div>' :
+                '<div class="file-grid">' + cards + '</div>';
+
+            return '<div id="app" style="display:flex;flex-direction:column;height:100vh;overflow:hidden">' +
+                // topbar
+                '<div class="topbar">' +
+                '<div class="topbar-left">' +
+                '<span class="topbar-logo">⬡ CLOTE</span>' +
+                '<span class="topbar-sep">/</span>' +
+                '<span class="topbar-bc">' + bc + '</span>' +
+                '</div>' +
+                '<div class="topbar-right">' +
+                '<span class="topbar-user">@' + esc(state.username) + '</span>' +
+                '<button class="btn btn-ghost" onclick="logout()">Sign out</button>' +
+                '</div>' +
+                '</div>' +
+                '<div class="dash-body">' +
+                // sidebar
+                renderSidebar() +
+                // main
+                '<div class="main-area">' +
+                '<div class="toolbar">' +
+                '<div class="toolbar-left"><input class="search" placeholder="Search…" value="' + esc(state.search) + '" oninput="setState({search:this.value})" /></div>' +
+                '<div class="toolbar-right">' +
+                '<button class="btn btn-ghost" onclick="setState({showNewFolder:!state.showNewFolder})">+ Folder</button>' +
+                '<label class="btn btn-primary" style="cursor:pointer">↑ Upload<input type="file" multiple style="display:none" onchange="handleUpload(event)" /></label>' +
+                '</div>' +
+                '</div>' +
+                (state.showNewFolder ? '<div class="new-folder-bar"><input id="new-folder-inp" placeholder="Folder name" /><button class="btn btn-primary" onclick="handleNewFolder()">Create</button><button class="btn btn-ghost" onclick="setState({showNewFolder:false})">Cancel</button></div>' : '') +
+                content +
+                '</div>' +
+                '</div>' +
+                renderCtx() +
+                renderVersionModal() +
+                renderRenameModal() +
+                '</div>';
+        }
+
+        function renderSidebar() {
+            const rootActive = !state.selectedFolder;
+            let tree = '';
+            // We'll use a simple flat list from loadContents root folders
+            // For sidebar we fetch separately via a global var
+            return '<div class="sidebar">' +
+                '<div class="sb-header"><span class="sb-title">EXPLORER</span><button class="sb-add" onclick="setState({showNewFolder:true})">+</button></div>' +
+                '<div class="folder-tree">' +
+                '<div class="f-row' + (rootActive ? " active" : "") + '" onclick="setState({selectedFolder:null})" style="padding-left:12px">' +
+                '<span class="f-icon">⌂</span><span class="f-name">Root</span>' +
+                '</div>' +
+                renderSidebarFolders() +
+                '</div>' +
+                '</div>';
+        }
+
+        // Keep a global sidebar folders cache
+        let sidebarFolders = [];
+        async function loadSidebarFolders() {
+            try {
+                sidebarFolders = await api("GET", "/folders/");
+                render();
+            } catch (e) {}
+        }
+
+        function renderSidebarFolders() {
+            return sidebarFolders.map(function(f) {
+                const active = state.selectedFolder && state.selectedFolder.id === f.id;
+                return '<div class="f-row' + (active ? " active" : "") + '" onclick="setState({selectedFolder:' + JSON.stringify(f) + '})" style="padding-left:20px">' +
+                    '<span class="f-icon">⬡</span><span class="f-name">' + esc(f.name) + '</span>' +
+                    '</div>';
+            }).join("");
+        }
+
+        function renderCtx() {
+            if (!state.ctx) return "";
+            const items = state.ctx.items.map(function(item) {
+                if (item.sep) return '<div class="ctx-div"></div>';
+                return '<div class="ctx-item' + (item.danger ? " danger" : "") + '" onclick="handleCtxAction(\'' + item.action + '\',' + item.id + ')">' +
+                    '<span>' + item.icon + '</span><span>' + esc(item.label) + '</span>' +
+                    '</div>';
+            }).join("");
+            return '<div class="ctx" style="left:' + state.ctx.x + 'px;top:' + state.ctx.y + 'px">' + items + '</div>';
+        }
+
+        function handleCtxAction(action, id) {
+            const file = state.files.find(function(f) {
+                return f.id === id;
+            });
+            const folder = state.folders.find(function(f) {
+                return f.id === id;
+            });
+            if (action === "downloadFile") apiDownload("/files/" + id + "/download", file.filename).catch(function(e) {
+                toast(e.message, "error");
+            });
+            if (action === "openVersions") openVersions(file);
+            if (action === "renameFile") showRename({
+                type: "file",
+                item: file
+            });
+            if (action === "deleteFile") deleteFile(file);
+            if (action === "openFolder") setState({
+                selectedFolder: folder
+            });
+            if (action === "renameFolder") showRename({
+                type: "folder",
+                item: folder
+            });
+            if (action === "deleteFolder") deleteFolder(folder);
+        }
+
+        function renderVersionModal() {
+            if (!state.versionFile) return "";
+            const f = state.versionFile;
+            let list = "";
+            if (state.versionLoading) {
+                list = '<div class="ver-empty">Loading…</div>';
+            } else if (state.versionData) {
+                const d = state.versionData;
+                if (!d.versions || d.versions.length === 0) {
+                    list = '<div class="ver-empty">No versions found</div>';
+                } else {
+                    d.versions.forEach(function(v) {
+                        const isCur = v.version_num === d.current_version;
+                        list += '<div class="ver-item' + (isCur ? " current" : "") + '">' +
+                            '<div class="ver-left">' +
+                            '<span class="tag ' + (isCur ? "tag-green" : "tag-blue") + '">v' + v.version_num + (isCur ? " ●" : "") + '</span>' +
+                            '<div class="ver-meta">' +
+                            fmtBytes(v.size_bytes) + ' · ' + fmtDate(v.created_at) +
+                            (v.note ? ' · <span class="ver-note">"' + esc(v.note) + '"</span>' : '') +
+                            '</div>' +
+                            '</div>' +
+                            '<div class="ver-actions">' +
+                            '<button class="btn btn-ghost" onclick="downloadVersion(' + f.id + ',' + v.version_num + ',\'' + esc(f.filename) + '\')">↓</button>' +
+                            (!isCur ? '<button class="btn btn-danger" onclick="deleteVersion(' + f.id + ',' + v.version_num + ')">✕</button>' : '') +
+                            '</div>' +
+                            '</div>';
+                    });
+                }
+            }
+
+            return '<div class="backdrop" onclick="if(event.target===this)setState({versionFile:null,versionData:null})">' +
+                '<div class="modal ver-modal">' +
+                '<div class="modal-header">' +
+                '<div><div class="modal-title">Version History</div><div class="ver-filename">' + esc(f.filename) + '</div></div>' +
+                '<button class="btn btn-ghost" onclick="setState({versionFile:null,versionData:null})">✕</button>' +
+                '</div>' +
+                '<form class="ver-upload" onsubmit="handleVersionUpload(event)">' +
+                '<div class="ver-upload-row">' +
+                '<label class="file-input-label btn btn-ghost" style="cursor:pointer" id="ver-file-label">Choose file<input id="ver-file-input" type="file" style="display:none" onchange="document.getElementById(\'ver-file-label\').textContent=this.files[0]?this.files[0].name:\'Choose file\'" /></label>' +
+                '<input id="ver-note-input" placeholder="Note (optional)" style="flex:1;min-width:100px" />' +
+                '<button class="btn btn-primary" type="submit">Push version</button>' +
+                '</div>' +
+                '</form>' +
+                '<div class="ver-list">' + list + '</div>' +
+                '</div>' +
+                '</div>';
+        }
+
+        function renderRenameModal() {
+            if (!state.renameTarget) return "";
+            const current = state.renameTarget.type === "file" ? state.renameTarget.item.filename : state.renameTarget.item.name;
+            return '<div class="backdrop" onclick="if(event.target===this)setState({renameTarget:null})">' +
+                '<div class="modal">' +
+                '<div class="modal-title">Rename</div>' +
+                '<input id="rename-input" value="' + esc(current) + '" onkeydown="if(event.key===\'Enter\')handleRenameConfirm()" />' +
+                '<div class="modal-actions">' +
+                '<button class="btn btn-ghost" onclick="setState({renameTarget:null})">Cancel</button>' +
+                '<button class="btn btn-primary" onclick="handleRenameConfirm()">Rename</button>' +
+                '</div>' +
+                '</div>' +
+                '</div>';
+        }
+
+        function handleNewFolder() {
+            const inp = document.getElementById("new-folder-inp");
+            if (!inp || !inp.value.trim()) return;
+            const name = inp.value.trim();
+            setState({
+                showNewFolder: false,
+                newFolderName: ""
+            });
+            createFolder(name, state.selectedFolder ? state.selectedFolder.id : null);
+            loadSidebarFolders();
+        }
+
+        function bindEvents() {}
+
+        // ── INIT ──────────────────────────────────────────────────────────────────────
+        render();
+        if (state.token) {
+            loadContents();
+            loadSidebarFolders();
+        }
+    </script>
+</body>
+
+</html>

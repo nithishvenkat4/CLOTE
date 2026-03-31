@@ -16,12 +16,16 @@ from database import init_db
 app = FastAPI(title=APP_NAME, version=APP_VERSION)
 
 # ─────────────────────────────────────────────
-# CORS — allow Person B (React client) to connect
+# CORS
+# During development: allow all origins.
+# For Tailscale (Phase 5): replace "*" with your Tailscale IPs.
+# Example:
+#   allow_origins=["http://100.x.x.x:3000", "http://100.x.x.y:3000"]
 # ─────────────────────────────────────────────
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],   # tighten this once you know Person B's IP
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -34,7 +38,7 @@ app.add_middleware(
 @app.on_event("startup")
 def on_startup():
     init_storage()
-    init_db()
+    init_db()   # also runs safe column migrations automatically
     print(f"[CLOTE] Server ready — {APP_NAME} v{APP_VERSION}")
 
 # ─────────────────────────────────────────────
@@ -56,7 +60,9 @@ def health():
 from routes.auth_routes import router as auth_router
 from routes.file_routes import router as file_router
 from routes.folder_routes import router as folder_router
+from routes.project_routes import router as project_router
 
 app.include_router(auth_router)
+app.include_router(project_router)   # /projects — must be before file/folder so helpers are importable
 app.include_router(file_router)
 app.include_router(folder_router)

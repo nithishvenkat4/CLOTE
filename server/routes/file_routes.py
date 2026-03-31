@@ -1,440 +1,457 @@
 """
-CLOTE - file_routes.py
-Phase 1 + Phase 2 file management routes.
-
-Schema reference:
-  files    : id, owner_id, folder_id, filename, stored_name, size_bytes,
-             mime_type, current_version, created_at, updated_at
-  versions : id, file_id, version_num, stored_name, size_bytes,
-             uploaded_by, note, created_at
+CLOTE - routes/file_routes.py
+File upload, download, preview, versioning, rename, move, delete.
+Now project-aware: files can belong to a project (project_id) or be personal (project_id IS NULL).
 """
 
-import os
-import shutil
 import uuid
+import shutil
+from pathlib import Path
 from typing import Optional
 
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form, Query
 from fastapi.responses import FileResponse
 from pydantic import BaseModel
 
 from auth import get_current_user
 from config import FILES_DIR, VERSIONS_DIR
 from database import get_db
+from routes.project_routes import get_member_role, require_editor_or_above
 
 router = APIRouter(prefix="/files", tags=["files"])
 
 
-# ── helpers ───────────────────────────────────────────────────────────────────
+# ─────────────────────────────────────────────
+# Schemas
+# ─────────────────────────────────────────────
 
-def _assert_owns(file_row, user_id: int):
-    if file_row is None:
-        raise HTTPException(status_code=404, detail="File not found")
-    if file_row["owner_id"] != user_id:
-        raise HTTPException(status_code=403, detail="Access denied")
+class RenameBody(BaseModel):
+    filename: str
 
-
-def _new_stored_name() -> str:
-    return str(uuid.uuid4())
+class MoveBody(BaseModel):
+    folder_id: Optional[int] = None
 
 
-def _resolve_version_path(stored_name: str, version_num: int, current_version: int) -> str:
-    if version_num == current_version:
-        return os.path.join(FILES_DIR, stored_name)
-    path = os.path.join(VERSIONS_DIR, stored_name)
-    if not os.path.exists(path):
-        path = os.path.join(FILES_DIR, stored_name)
-    return path
+# ─────────────────────────────────────────────
+# Permission helper
+# ─────────────────────────────────────────────
+
+def _check_file_access(conn, file_row, user, require_write: bool = False):
+    """
+    Check the current user can access a file.
+    - Personal files: only the owner.
+    - Project files: any member can read; editors/owners can write.
+    """
+    if file_row["project_id"] is None:
+        # Personal file — owner only
+        if file_row["owner_id"] != user["id"]:
+            raise HTTPException(status_code=403, detail="Access denied")
+    else:
+        # Project file — check membership
+        if require_write:
+            require_editor_or_above(conn, file_row["project_id"], user["id"])
+        else:
+            get_member_role(conn, file_row["project_id"], user["id"])
 
 
-def _touch_folder(db, folder_id: int):
-    """Update folder updated_at whenever its contents change."""
-    if folder_id is not None:
-        db.execute(
-            "UPDATE folders SET updated_at = datetime('now') WHERE id = ?",
-            (folder_id,),
-        )
+# ─────────────────────────────────────────────
+# Upload new file
+# ─────────────────────────────────────────────
 
-
-# ── Phase 1 ───────────────────────────────────────────────────────────────────
-
-@router.post("/upload")
+@router.post("/upload", status_code=201)
 async def upload_file(
     file: UploadFile = File(...),
-    current_user=Depends(get_current_user),
+    project_id: Optional[int] = Form(None),
+    user=Depends(get_current_user)
 ):
-    """Upload a brand-new file at root level (version 1)."""
-    content = await file.read()
-    size_bytes = len(content)
-    stored_name = _new_stored_name()
-    dest_path = os.path.join(FILES_DIR, stored_name)
-
-    with open(dest_path, "wb") as f:
-        f.write(content)
-
-    db = get_db()
+    """
+    Upload a brand-new file to My Files (project_id=None) or a project root.
+    For folder uploads use POST /folders/{folder_id}/upload.
+    """
+    conn = get_db()
     try:
-        cursor = db.execute(
-            """
-            INSERT INTO files (owner_id, folder_id, filename, stored_name, size_bytes, mime_type, current_version)
-            VALUES (?, NULL, ?, ?, ?, ?, 1)
-            """,
-            (current_user["id"], file.filename, stored_name, size_bytes, file.content_type),
-        )
-        file_id = cursor.lastrowid
+        # If uploading to a project, must be editor or above
+        if project_id is not None:
+            require_editor_or_above(conn, project_id, user["id"])
 
-        db.execute(
-            """
-            INSERT INTO versions (file_id, version_num, stored_name, size_bytes, uploaded_by)
-            VALUES (?, 1, ?, ?, ?)
-            """,
-            (file_id, stored_name, size_bytes, current_user["id"]),
+        stored_name = f"{uuid.uuid4().hex}_{file.filename}"
+        dest = Path(FILES_DIR) / stored_name
+
+        content = await file.read()
+        dest.write_bytes(content)
+        size = len(content)
+
+        cur = conn.execute(
+            """INSERT INTO files
+               (owner_id, folder_id, project_id, filename, stored_name, size_bytes, mime_type, current_version)
+               VALUES (?, NULL, ?, ?, ?, ?, ?, 1)""",
+            (user["id"], project_id, file.filename, stored_name, size, file.content_type)
         )
-        db.commit()
-    except Exception:
-        db.rollback()
-        os.remove(dest_path)
-        raise
+        file_id = cur.lastrowid
+
+        # Create version 1 record
+        conn.execute(
+            """INSERT INTO versions (file_id, version_num, stored_name, size_bytes, uploaded_by)
+               VALUES (?, 1, ?, ?, ?)""",
+            (file_id, stored_name, size, user["id"])
+        )
+        conn.commit()
+
+        return {
+            "id": file_id,
+            "filename": file.filename,
+            "size_bytes": size,
+            "current_version": 1,
+            "project_id": project_id
+        }
     finally:
-        db.close()
+        conn.close()
 
-    return {
-        "file_id": file_id,
-        "filename": file.filename,
-        "stored_name": stored_name,
-        "size_bytes": size_bytes,
-        "version": 1,
-    }
 
+# ─────────────────────────────────────────────
+# List files
+# ─────────────────────────────────────────────
 
 @router.get("/")
-def list_files(current_user=Depends(get_current_user)):
-    """List all root-level files (not inside any folder) owned by the current user."""
-    db = get_db()
+def list_files(project_id: Optional[int] = Query(None), user=Depends(get_current_user)):
+    """
+    List files.
+    - project_id=None  → personal files only
+    - project_id=X     → project files (must be member)
+    """
+    conn = get_db()
     try:
-        rows = db.execute(
-            """
-            SELECT id, filename, size_bytes, mime_type, current_version, created_at, updated_at
-            FROM files
-            WHERE owner_id = ? AND folder_id IS NULL
-            ORDER BY updated_at DESC
-            """,
-            (current_user["id"],),
-        ).fetchall()
-        return [dict(r) for r in rows]
-    finally:
-        db.close()
+        if project_id is not None:
+            get_member_role(conn, project_id, user["id"])
+            rows = conn.execute(
+                "SELECT * FROM files WHERE project_id = ? ORDER BY filename",
+                (project_id,)
+            ).fetchall()
+        else:
+            rows = conn.execute(
+                "SELECT * FROM files WHERE owner_id = ? AND project_id IS NULL ORDER BY filename",
+                (user["id"],)
+            ).fetchall()
 
+        return {"files": [dict(r) for r in rows]}
+    finally:
+        conn.close()
+
+
+# ─────────────────────────────────────────────
+# Download file (current version)
+# ─────────────────────────────────────────────
 
 @router.get("/{file_id}/download")
-def download_file(file_id: int, current_user=Depends(get_current_user)):
-    """Download the latest version of a file."""
-    db = get_db()
+def download_file(file_id: int, user=Depends(get_current_user)):
+    conn = get_db()
     try:
-        row = db.execute("SELECT * FROM files WHERE id = ?", (file_id,)).fetchone()
-        _assert_owns(row, current_user["id"])
+        row = conn.execute("SELECT * FROM files WHERE id = ?", (file_id,)).fetchone()
+        if not row:
+            raise HTTPException(status_code=404, detail="File not found")
+        _check_file_access(conn, row, user, require_write=False)
 
-        path = os.path.join(FILES_DIR, row["stored_name"])
-        if not os.path.exists(path):
-            raise HTTPException(status_code=404, detail="File data missing on disk")
+        path = Path(FILES_DIR) / row["stored_name"]
+        if not path.exists():
+            raise HTTPException(status_code=404, detail="File missing from storage")
 
-        return FileResponse(path, filename=row["filename"], media_type=row["mime_type"])
+        return FileResponse(
+            path=str(path),
+            filename=row["filename"],
+            media_type=row["mime_type"] or "application/octet-stream"
+        )
     finally:
-        db.close()
+        conn.close()
 
 
-# ── Phase 2 ───────────────────────────────────────────────────────────────────
+# ─────────────────────────────────────────────
+# Preview file (inline, no download header)
+# ─────────────────────────────────────────────
 
-@router.post("/{file_id}/upload")
+PREVIEWABLE = {
+    "image/jpeg", "image/png", "image/gif", "image/webp", "image/svg+xml",
+    "application/pdf", "text/plain", "text/markdown", "text/csv",
+    "text/html", "application/json"
+}
+
+@router.get("/{file_id}/preview")
+def preview_file(file_id: int, user=Depends(get_current_user)):
+    """
+    Serve the file inline for browser preview.
+    Only allowed for safe MIME types.
+    """
+    conn = get_db()
+    try:
+        row = conn.execute("SELECT * FROM files WHERE id = ?", (file_id,)).fetchone()
+        if not row:
+            raise HTTPException(status_code=404, detail="File not found")
+        _check_file_access(conn, row, user, require_write=False)
+
+        mime = row["mime_type"] or "application/octet-stream"
+        if mime not in PREVIEWABLE:
+            raise HTTPException(status_code=415,
+                                detail="This file type cannot be previewed inline")
+
+        path = Path(FILES_DIR) / row["stored_name"]
+        if not path.exists():
+            raise HTTPException(status_code=404, detail="File missing from storage")
+
+        return FileResponse(
+            path=str(path),
+            media_type=mime,
+            headers={"Content-Disposition": f"inline; filename=\"{row['filename']}\""}
+        )
+    finally:
+        conn.close()
+
+
+# ─────────────────────────────────────────────
+# Upload new version
+# ─────────────────────────────────────────────
+
+@router.post("/{file_id}/upload", status_code=201)
 async def upload_new_version(
     file_id: int,
     file: UploadFile = File(...),
     note: Optional[str] = Form(None),
-    current_user=Depends(get_current_user),
+    user=Depends(get_current_user)
 ):
-    """Upload a new version of an existing file."""
-    db = get_db()
-    new_path = None
+    conn = get_db()
     try:
-        row = db.execute("SELECT * FROM files WHERE id = ?", (file_id,)).fetchone()
-        _assert_owns(row, current_user["id"])
+        row = conn.execute("SELECT * FROM files WHERE id = ?", (file_id,)).fetchone()
+        if not row:
+            raise HTTPException(status_code=404, detail="File not found")
+        _check_file_access(conn, row, user, require_write=True)
 
         new_version = row["current_version"] + 1
+        stored_name = f"{uuid.uuid4().hex}_{file.filename}"
+
         content = await file.read()
-        size_bytes = len(content)
-        new_stored_name = _new_stored_name()
-        new_path = os.path.join(FILES_DIR, new_stored_name)
+        size = len(content)
 
-        # Archive current live file into VERSIONS_DIR
-        old_stored_name = row["stored_name"]
-        old_live_path = os.path.join(FILES_DIR, old_stored_name)
-        archive_path = os.path.join(VERSIONS_DIR, old_stored_name)
+        # Save to versions/ directory
+        dest = Path(VERSIONS_DIR) / stored_name
+        dest.write_bytes(content)
 
-        if os.path.exists(old_live_path):
-            shutil.copy2(old_live_path, archive_path)
+        # Also overwrite the current file in files/ so download always gets latest
+        current_path = Path(FILES_DIR) / row["stored_name"]
+        current_path.write_bytes(content)
 
-        with open(new_path, "wb") as f:
-            f.write(content)
-
-        db.execute(
-            """
-            INSERT INTO versions (file_id, version_num, stored_name, size_bytes, uploaded_by, note)
-            VALUES (?, ?, ?, ?, ?, ?)
-            """,
-            (file_id, new_version, new_stored_name, size_bytes, current_user["id"], note),
+        # Insert version record
+        conn.execute(
+            """INSERT INTO versions (file_id, version_num, stored_name, size_bytes, uploaded_by, note)
+               VALUES (?, ?, ?, ?, ?, ?)""",
+            (file_id, new_version, stored_name, size, user["id"], note)
         )
-        db.execute(
-            """
-            UPDATE files
-            SET filename = ?, stored_name = ?, size_bytes = ?, mime_type = ?,
-                current_version = ?, updated_at = datetime('now')
-            WHERE id = ?
-            """,
-            (file.filename, new_stored_name, size_bytes, file.content_type, new_version, file_id),
+
+        # Update file record
+        conn.execute(
+            """UPDATE files SET current_version = ?, size_bytes = ?,
+               filename = ?, updated_at = datetime('now') WHERE id = ?""",
+            (new_version, size, file.filename, file_id)
         )
-        _touch_folder(db, row["folder_id"])
-        db.commit()
-    except HTTPException:
-        raise
-    except Exception:
-        db.rollback()
-        if new_path and os.path.exists(new_path):
-            os.remove(new_path)
-        raise
-    finally:
-        db.close()
-
-    return {
-        "file_id": file_id,
-        "filename": file.filename,
-        "version": new_version,
-        "size_bytes": size_bytes,
-    }
-
-
-@router.get("/{file_id}/versions")
-def list_versions(file_id: int, current_user=Depends(get_current_user)):
-    """List all versions of a file."""
-    db = get_db()
-    try:
-        row = db.execute("SELECT * FROM files WHERE id = ?", (file_id,)).fetchone()
-        _assert_owns(row, current_user["id"])
-
-        versions = db.execute(
-            """
-            SELECT version_num, stored_name, size_bytes, uploaded_by, note, created_at
-            FROM versions
-            WHERE file_id = ?
-            ORDER BY version_num
-            """,
-            (file_id,),
-        ).fetchall()
+        conn.commit()
 
         return {
             "file_id": file_id,
-            "filename": row["filename"],
-            "current_version": row["current_version"],
-            "versions": [dict(v) for v in versions],
+            "version": new_version,
+            "size_bytes": size,
+            "note": note
         }
     finally:
-        db.close()
+        conn.close()
 
 
-@router.get("/{file_id}/versions/{version_num}/download")
-def download_version(
-    file_id: int,
-    version_num: int,
-    current_user=Depends(get_current_user),
-):
-    """Download a specific version of a file."""
-    db = get_db()
+# ─────────────────────────────────────────────
+# List versions
+# ─────────────────────────────────────────────
+
+@router.get("/{file_id}/versions")
+def list_versions(file_id: int, user=Depends(get_current_user)):
+    conn = get_db()
     try:
-        file_row = db.execute("SELECT * FROM files WHERE id = ?", (file_id,)).fetchone()
-        _assert_owns(file_row, current_user["id"])
+        row = conn.execute("SELECT * FROM files WHERE id = ?", (file_id,)).fetchone()
+        if not row:
+            raise HTTPException(status_code=404, detail="File not found")
+        _check_file_access(conn, row, user, require_write=False)
 
-        ver = db.execute(
-            "SELECT * FROM versions WHERE file_id = ? AND version_num = ?",
-            (file_id, version_num),
-        ).fetchone()
-        if ver is None:
-            raise HTTPException(status_code=404, detail=f"Version {version_num} not found")
-
-        path = _resolve_version_path(ver["stored_name"], version_num, file_row["current_version"])
-        if not os.path.exists(path):
-            raise HTTPException(status_code=404, detail="Version data missing on disk")
-
-        name, ext = os.path.splitext(file_row["filename"])
-        download_name = f"{name}_v{version_num}{ext}"
-        return FileResponse(path, filename=download_name)
-    finally:
-        db.close()
-
-
-@router.delete("/{file_id}/versions/{version_num}")
-def delete_version(
-    file_id: int,
-    version_num: int,
-    current_user=Depends(get_current_user),
-):
-    """Delete a specific version. Cannot delete the current or only version."""
-    db = get_db()
-    try:
-        file_row = db.execute("SELECT * FROM files WHERE id = ?", (file_id,)).fetchone()
-        _assert_owns(file_row, current_user["id"])
-
-        if version_num == file_row["current_version"]:
-            raise HTTPException(
-                status_code=400,
-                detail="Cannot delete the current version. Upload a new version first, or delete the entire file.",
-            )
-
-        total_versions = db.execute(
-            "SELECT COUNT(*) FROM versions WHERE file_id = ?", (file_id,)
-        ).fetchone()[0]
-        if total_versions <= 1:
-            raise HTTPException(
-                status_code=400,
-                detail="Only one version exists. Use DELETE /files/{file_id} to delete the entire file.",
-            )
-
-        ver = db.execute(
-            "SELECT * FROM versions WHERE file_id = ? AND version_num = ?",
-            (file_id, version_num),
-        ).fetchone()
-        if ver is None:
-            raise HTTPException(status_code=404, detail=f"Version {version_num} not found")
-
-        path = _resolve_version_path(ver["stored_name"], version_num, file_row["current_version"])
-        if os.path.exists(path):
-            os.remove(path)
-
-        db.execute(
-            "DELETE FROM versions WHERE file_id = ? AND version_num = ?",
-            (file_id, version_num),
-        )
-        db.commit()
-    except HTTPException:
-        raise
-    except Exception:
-        db.rollback()
-        raise
-    finally:
-        db.close()
-
-    return {"detail": f"Version {version_num} of file {file_id} deleted successfully."}
-
-
-@router.delete("/{file_id}")
-def delete_file(file_id: int, current_user=Depends(get_current_user)):
-    """Delete a file and ALL its versions from DB and disk."""
-    db = get_db()
-    try:
-        row = db.execute("SELECT * FROM files WHERE id = ?", (file_id,)).fetchone()
-        _assert_owns(row, current_user["id"])
-
-        ver_rows = db.execute(
-            "SELECT stored_name, version_num FROM versions WHERE file_id = ?",
-            (file_id,),
+        current_version = row["current_version"]
+        versions = conn.execute(
+            "SELECT * FROM versions WHERE file_id = ? ORDER BY version_num DESC",
+            (file_id,)
         ).fetchall()
 
-        for v in ver_rows:
-            path = _resolve_version_path(v["stored_name"], v["version_num"], row["current_version"])
-            if os.path.exists(path):
-                os.remove(path)
+        result = []
+        for v in versions:
+            d = dict(v)
+            d["is_current"] = (v["version_num"] == current_version)
+            result.append(d)
 
-        folder_id = row["folder_id"]
-        db.execute("DELETE FROM files WHERE id = ?", (file_id,))
-        _touch_folder(db, folder_id)
-        db.commit()
-    except HTTPException:
-        raise
-    except Exception:
-        db.rollback()
-        raise
+        return result
     finally:
-        db.close()
-
-    return {"detail": f"File {file_id} and all its versions deleted successfully."}
+        conn.close()
 
 
-class RenamePayload(BaseModel):
-    filename: str
+# ─────────────────────────────────────────────
+# Download specific version
+# ─────────────────────────────────────────────
 
+@router.get("/{file_id}/versions/{version_num}/download")
+def download_version(file_id: int, version_num: int, user=Depends(get_current_user)):
+    conn = get_db()
+    try:
+        row = conn.execute("SELECT * FROM files WHERE id = ?", (file_id,)).fetchone()
+        if not row:
+            raise HTTPException(status_code=404, detail="File not found")
+        _check_file_access(conn, row, user, require_write=False)
+
+        ver = conn.execute(
+            "SELECT * FROM versions WHERE file_id = ? AND version_num = ?",
+            (file_id, version_num)
+        ).fetchone()
+        if not ver:
+            raise HTTPException(status_code=404, detail="Version not found")
+
+        # Current version lives in FILES_DIR, older ones in VERSIONS_DIR
+        if version_num == row["current_version"]:
+            path = Path(FILES_DIR) / row["stored_name"]
+        else:
+            path = Path(VERSIONS_DIR) / ver["stored_name"]
+
+        if not path.exists():
+            raise HTTPException(status_code=404, detail="Version file missing from storage")
+
+        return FileResponse(
+            path=str(path),
+            filename=f"v{version_num}_{row['filename']}",
+            media_type=row["mime_type"] or "application/octet-stream"
+        )
+    finally:
+        conn.close()
+
+
+# ─────────────────────────────────────────────
+# Delete specific version
+# ─────────────────────────────────────────────
+
+@router.delete("/{file_id}/versions/{version_num}", status_code=204)
+def delete_version(file_id: int, version_num: int, user=Depends(get_current_user)):
+    conn = get_db()
+    try:
+        row = conn.execute("SELECT * FROM files WHERE id = ?", (file_id,)).fetchone()
+        if not row:
+            raise HTTPException(status_code=404, detail="File not found")
+        _check_file_access(conn, row, user, require_write=True)
+
+        if version_num == row["current_version"]:
+            raise HTTPException(status_code=400, detail="Cannot delete the current version")
+
+        ver = conn.execute(
+            "SELECT * FROM versions WHERE file_id = ? AND version_num = ?",
+            (file_id, version_num)
+        ).fetchone()
+        if not ver:
+            raise HTTPException(status_code=404, detail="Version not found")
+
+        # Remove from disk
+        path = Path(VERSIONS_DIR) / ver["stored_name"]
+        if path.exists():
+            path.unlink()
+
+        conn.execute(
+            "DELETE FROM versions WHERE file_id = ? AND version_num = ?",
+            (file_id, version_num)
+        )
+        conn.commit()
+    finally:
+        conn.close()
+
+
+# ─────────────────────────────────────────────
+# Rename file
+# ─────────────────────────────────────────────
 
 @router.patch("/{file_id}/rename")
-def rename_file(
-    file_id: int,
-    payload: RenamePayload,
-    current_user=Depends(get_current_user),
-):
-    """Rename a file (metadata only)."""
-    new_name = payload.filename.strip()
-    if not new_name:
-        raise HTTPException(status_code=422, detail="filename must not be empty")
-
-    db = get_db()
+def rename_file(file_id: int, body: RenameBody, user=Depends(get_current_user)):
+    conn = get_db()
     try:
-        row = db.execute("SELECT * FROM files WHERE id = ?", (file_id,)).fetchone()
-        _assert_owns(row, current_user["id"])
+        row = conn.execute("SELECT * FROM files WHERE id = ?", (file_id,)).fetchone()
+        if not row:
+            raise HTTPException(status_code=404, detail="File not found")
+        _check_file_access(conn, row, user, require_write=True)
 
-        db.execute(
+        conn.execute(
             "UPDATE files SET filename = ?, updated_at = datetime('now') WHERE id = ?",
-            (new_name, file_id),
+            (body.filename.strip(), file_id)
         )
-        db.commit()
+        conn.commit()
+        return {"detail": "Renamed", "filename": body.filename.strip()}
     finally:
-        db.close()
-
-    return {"file_id": file_id, "filename": new_name}
+        conn.close()
 
 
-class MovePayload(BaseModel):
-    folder_id: Optional[int] = None   # None = move to root
-
+# ─────────────────────────────────────────────
+# Move file to a different folder
+# ─────────────────────────────────────────────
 
 @router.patch("/{file_id}/move")
-def move_file(
-    file_id: int,
-    payload: MovePayload,
-    current_user=Depends(get_current_user),
-):
-    """Move a file into a folder (or to root if folder_id is null)."""
-    db = get_db()
+def move_file(file_id: int, body: MoveBody, user=Depends(get_current_user)):
+    conn = get_db()
     try:
-        row = db.execute("SELECT * FROM files WHERE id = ?", (file_id,)).fetchone()
-        _assert_owns(row, current_user["id"])
+        row = conn.execute("SELECT * FROM files WHERE id = ?", (file_id,)).fetchone()
+        if not row:
+            raise HTTPException(status_code=404, detail="File not found")
+        _check_file_access(conn, row, user, require_write=True)
 
-        old_folder_id = row["folder_id"]
-        new_folder_id = payload.folder_id
-
-        # Validate target folder ownership if not moving to root
-        if new_folder_id is not None:
-            folder = db.execute(
-                "SELECT * FROM folders WHERE id = ?", (new_folder_id,)
+        # Validate target folder belongs to same owner / project
+        if body.folder_id is not None:
+            folder = conn.execute(
+                "SELECT * FROM folders WHERE id = ?", (body.folder_id,)
             ).fetchone()
-            if folder is None:
+            if not folder:
                 raise HTTPException(status_code=404, detail="Target folder not found")
-            if folder["owner_id"] != current_user["id"]:
-                raise HTTPException(status_code=403, detail="Access denied to target folder")
+            if folder["project_id"] != row["project_id"]:
+                raise HTTPException(status_code=400,
+                                    detail="Cannot move file across projects")
 
-        db.execute(
+        conn.execute(
             "UPDATE files SET folder_id = ?, updated_at = datetime('now') WHERE id = ?",
-            (new_folder_id, file_id),
+            (body.folder_id, file_id)
         )
-        # Touch both old and new folders
-        _touch_folder(db, old_folder_id)
-        _touch_folder(db, new_folder_id)
-        db.commit()
-    except HTTPException:
-        raise
-    except Exception:
-        db.rollback()
-        raise
+        conn.commit()
+        return {"detail": "Moved", "folder_id": body.folder_id}
     finally:
-        db.close()
+        conn.close()
 
-    return {
-        "file_id": file_id,
-        "filename": row["filename"],
-        "moved_to_folder_id": new_folder_id,
-    }
+
+# ─────────────────────────────────────────────
+# Delete file
+# ─────────────────────────────────────────────
+
+@router.delete("/{file_id}", status_code=204)
+def delete_file(file_id: int, user=Depends(get_current_user)):
+    conn = get_db()
+    try:
+        row = conn.execute("SELECT * FROM files WHERE id = ?", (file_id,)).fetchone()
+        if not row:
+            raise HTTPException(status_code=404, detail="File not found")
+        _check_file_access(conn, row, user, require_write=True)
+
+        # Delete all version files from disk
+        versions = conn.execute(
+            "SELECT stored_name FROM versions WHERE file_id = ?", (file_id,)
+        ).fetchall()
+        for v in versions:
+            p = Path(VERSIONS_DIR) / v["stored_name"]
+            if p.exists():
+                p.unlink()
+
+        # Delete current file from disk
+        p = Path(FILES_DIR) / row["stored_name"]
+        if p.exists():
+            p.unlink()
+
+        conn.execute("DELETE FROM files WHERE id = ?", (file_id,))
+        conn.commit()
+    finally:
+        conn.close()

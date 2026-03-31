@@ -1,355 +1,286 @@
 """
-CLOTE - folder_routes.py
-Folder management routes.
-
-Schema reference:
-  folders : id, owner_id, parent_id, name, created_at, updated_at
-  files   : id, owner_id, folder_id, filename, stored_name, size_bytes,
-            mime_type, current_version, created_at, updated_at
+CLOTE - routes/folder_routes.py
+Folder CRUD + file upload into folders.
+Now project-aware: folders can belong to a project or be personal.
 """
 
-import os
 import uuid
-from typing import Optional, List
+from pathlib import Path
+from typing import Optional
 
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
 from pydantic import BaseModel
 
 from auth import get_current_user
 from config import FILES_DIR, VERSIONS_DIR
 from database import get_db
+from routes.project_routes import get_member_role, require_editor_or_above
 
 router = APIRouter(prefix="/folders", tags=["folders"])
 
 
-# ── helpers ───────────────────────────────────────────────────────────────────
+# ─────────────────────────────────────────────
+# Schemas
+# ─────────────────────────────────────────────
 
-def _assert_owns_folder(folder_row, user_id: int):
-    if folder_row is None:
-        raise HTTPException(status_code=404, detail="Folder not found")
-    if folder_row["owner_id"] != user_id:
-        raise HTTPException(status_code=403, detail="Access denied")
-
-
-def _new_stored_name() -> str:
-    return str(uuid.uuid4())
-
-
-def _touch_folder(db, folder_id: int):
-    """Update folder updated_at whenever its contents change."""
-    db.execute(
-        "UPDATE folders SET updated_at = datetime('now') WHERE id = ?",
-        (folder_id,),
-    )
-
-
-# ── Folder CRUD ───────────────────────────────────────────────────────────────
-
-class CreateFolderPayload(BaseModel):
+class FolderCreate(BaseModel):
     name: str
     parent_id: Optional[int] = None
+    project_id: Optional[int] = None
+
+class FolderRename(BaseModel):
+    name: str
 
 
-@router.post("/")
-def create_folder(
-    payload: CreateFolderPayload,
-    current_user=Depends(get_current_user),
-):
-    """Create an empty folder (optionally inside a parent folder)."""
-    name = payload.name.strip()
-    if not name:
-        raise HTTPException(status_code=422, detail="Folder name must not be empty")
+# ─────────────────────────────────────────────
+# Permission helper
+# ─────────────────────────────────────────────
 
-    db = get_db()
+def _check_folder_access(conn, folder_row, user, require_write: bool = False):
+    if folder_row["project_id"] is None:
+        if folder_row["owner_id"] != user["id"]:
+            raise HTTPException(status_code=403, detail="Access denied")
+    else:
+        if require_write:
+            require_editor_or_above(conn, folder_row["project_id"], user["id"])
+        else:
+            get_member_role(conn, folder_row["project_id"], user["id"])
+
+
+# ─────────────────────────────────────────────
+# Create folder
+# ─────────────────────────────────────────────
+
+@router.post("/", status_code=201)
+def create_folder(body: FolderCreate, user=Depends(get_current_user)):
+    if not body.name.strip():
+        raise HTTPException(status_code=400, detail="Folder name cannot be empty")
+
+    conn = get_db()
     try:
-        # Validate parent folder ownership if provided
-        if payload.parent_id is not None:
-            parent = db.execute(
-                "SELECT * FROM folders WHERE id = ?", (payload.parent_id,)
+        # If project folder, must be editor or above
+        if body.project_id is not None:
+            require_editor_or_above(conn, body.project_id, user["id"])
+
+        # Validate parent folder exists and belongs to same context
+        if body.parent_id is not None:
+            parent = conn.execute(
+                "SELECT * FROM folders WHERE id = ?", (body.parent_id,)
             ).fetchone()
-            _assert_owns_folder(parent, current_user["id"])
+            if not parent:
+                raise HTTPException(status_code=404, detail="Parent folder not found")
+            if parent["project_id"] != body.project_id:
+                raise HTTPException(status_code=400,
+                                    detail="Parent folder belongs to a different context")
 
-        # Check for duplicate name in same location
-        existing = db.execute(
-            """
-            SELECT id FROM folders
-            WHERE owner_id = ? AND name = ? AND parent_id IS ?
-            """,
-            (current_user["id"], name, payload.parent_id),
-        ).fetchone()
-        if existing:
-            raise HTTPException(
-                status_code=409,
-                detail=f"A folder named '{name}' already exists here",
-            )
-
-        cursor = db.execute(
-            """
-            INSERT INTO folders (owner_id, parent_id, name)
-            VALUES (?, ?, ?)
-            """,
-            (current_user["id"], payload.parent_id, name),
+        cur = conn.execute(
+            """INSERT INTO folders (owner_id, parent_id, project_id, name)
+               VALUES (?, ?, ?, ?)""",
+            (user["id"], body.parent_id, body.project_id, body.name.strip())
         )
-        folder_id = cursor.lastrowid
-        db.commit()
-    except HTTPException:
-        raise
-    except Exception:
-        db.rollback()
+        folder_id = cur.lastrowid
+        conn.commit()
+
+        return {
+            "id": folder_id,
+            "name": body.name.strip(),
+            "parent_id": body.parent_id,
+            "project_id": body.project_id,
+            "owner_id": user["id"]
+        }
+    except Exception as e:
+        if "UNIQUE constraint" in str(e):
+            raise HTTPException(status_code=409,
+                                detail="A folder with this name already exists here")
         raise
     finally:
-        db.close()
+        conn.close()
 
-    return {
-        "folder_id": folder_id,
-        "name": name,
-        "parent_id": payload.parent_id,
-    }
 
+# ─────────────────────────────────────────────
+# List folders (personal root or project root)
+# ─────────────────────────────────────────────
 
 @router.get("/")
-def list_root_folders(current_user=Depends(get_current_user)):
-    """List all root-level folders (no parent) owned by the current user."""
-    db = get_db()
+def list_folders(user=Depends(get_current_user)):
+    """
+    Returns all personal folders (project_id IS NULL) owned by the user.
+    For project folders use GET /projects/{id} instead.
+    """
+    conn = get_db()
     try:
-        folders = db.execute(
-            """
-            SELECT id, name, created_at, updated_at
-            FROM folders
-            WHERE owner_id = ? AND parent_id IS NULL
-            ORDER BY name
-            """,
-            (current_user["id"],),
+        rows = conn.execute(
+            """SELECT * FROM folders
+               WHERE owner_id = ? AND project_id IS NULL
+               ORDER BY name""",
+            (user["id"],)
         ).fetchall()
-        return [dict(f) for f in folders]
+        return [dict(r) for r in rows]
     finally:
-        db.close()
+        conn.close()
 
+
+# ─────────────────────────────────────────────
+# Get folder contents (children + files)
+# ─────────────────────────────────────────────
 
 @router.get("/{folder_id}")
-def get_folder_contents(folder_id: int, current_user=Depends(get_current_user)):
-    """Get contents of a folder — its subfolders and files."""
-    db = get_db()
+def get_folder(folder_id: int, user=Depends(get_current_user)):
+    conn = get_db()
     try:
-        folder = db.execute(
+        folder = conn.execute(
             "SELECT * FROM folders WHERE id = ?", (folder_id,)
         ).fetchone()
-        _assert_owns_folder(folder, current_user["id"])
+        if not folder:
+            raise HTTPException(status_code=404, detail="Folder not found")
+        _check_folder_access(conn, folder, user, require_write=False)
 
-        subfolders = db.execute(
-            """
-            SELECT id, name, created_at, updated_at
-            FROM folders
-            WHERE owner_id = ? AND parent_id = ?
-            ORDER BY name
-            """,
-            (current_user["id"], folder_id),
+        children = conn.execute(
+            "SELECT * FROM folders WHERE parent_id = ? ORDER BY name",
+            (folder_id,)
         ).fetchall()
 
-        files = db.execute(
-            """
-            SELECT id, filename, size_bytes, mime_type, current_version, created_at, updated_at
-            FROM files
-            WHERE owner_id = ? AND folder_id = ?
-            ORDER BY filename
-            """,
-            (current_user["id"], folder_id),
+        files = conn.execute(
+            "SELECT * FROM files WHERE folder_id = ? ORDER BY filename",
+            (folder_id,)
         ).fetchall()
 
         return {
-            "folder_id": folder_id,
-            "name": folder["name"],
-            "parent_id": folder["parent_id"],
-            "subfolders": [dict(f) for f in subfolders],
+            **dict(folder),
+            "children": [dict(c) for c in children],
             "files": [dict(f) for f in files],
         }
     finally:
-        db.close()
+        conn.close()
 
 
-@router.post("/{folder_id}/upload")
-async def upload_files_to_folder(
+# ─────────────────────────────────────────────
+# Upload file into folder
+# ─────────────────────────────────────────────
+
+@router.post("/{folder_id}/upload", status_code=201)
+async def upload_to_folder(
     folder_id: int,
-    files: List[UploadFile] = File(...),
-    current_user=Depends(get_current_user),
+    file: UploadFile = File(...),
+    user=Depends(get_current_user)
 ):
-    """
-    Upload one or more files into a folder (entire folder upload).
-    Each file is stored as version 1.
-    """
-    db = get_db()
-    saved_paths = []
+    conn = get_db()
     try:
-        folder = db.execute(
+        folder = conn.execute(
             "SELECT * FROM folders WHERE id = ?", (folder_id,)
         ).fetchone()
-        _assert_owns_folder(folder, current_user["id"])
+        if not folder:
+            raise HTTPException(status_code=404, detail="Folder not found")
+        _check_folder_access(conn, folder, user, require_write=True)
 
-        results = []
-        for file in files:
-            content = await file.read()
-            size_bytes = len(content)
-            stored_name = _new_stored_name()
-            dest_path = os.path.join(FILES_DIR, stored_name)
+        stored_name = f"{uuid.uuid4().hex}_{file.filename}"
+        dest = Path(FILES_DIR) / stored_name
 
-            with open(dest_path, "wb") as f:
-                f.write(content)
-            saved_paths.append(dest_path)
+        content = await file.read()
+        dest.write_bytes(content)
+        size = len(content)
 
-            cursor = db.execute(
-                """
-                INSERT INTO files (owner_id, folder_id, filename, stored_name, size_bytes, mime_type, current_version)
-                VALUES (?, ?, ?, ?, ?, ?, 1)
-                """,
-                (current_user["id"], folder_id, file.filename, stored_name, size_bytes, file.content_type),
-            )
-            file_id = cursor.lastrowid
+        cur = conn.execute(
+            """INSERT INTO files
+               (owner_id, folder_id, project_id, filename, stored_name, size_bytes, mime_type, current_version)
+               VALUES (?, ?, ?, ?, ?, ?, ?, 1)""",
+            (user["id"], folder_id, folder["project_id"],
+             file.filename, stored_name, size, file.content_type)
+        )
+        file_id = cur.lastrowid
 
-            db.execute(
-                """
-                INSERT INTO versions (file_id, version_num, stored_name, size_bytes, uploaded_by)
-                VALUES (?, 1, ?, ?, ?)
-                """,
-                (file_id, stored_name, size_bytes, current_user["id"]),
-            )
+        conn.execute(
+            """INSERT INTO versions (file_id, version_num, stored_name, size_bytes, uploaded_by)
+               VALUES (?, 1, ?, ?, ?)""",
+            (file_id, stored_name, size, user["id"])
+        )
+        conn.commit()
 
-            results.append({
-                "file_id": file_id,
-                "filename": file.filename,
-                "size_bytes": size_bytes,
-                "version": 1,
-            })
-
-        _touch_folder(db, folder_id)
-        db.commit()
-    except HTTPException:
-        raise
-    except Exception:
-        db.rollback()
-        for path in saved_paths:
-            if os.path.exists(path):
-                os.remove(path)
-        raise
+        return {
+            "id": file_id,
+            "filename": file.filename,
+            "folder_id": folder_id,
+            "project_id": folder["project_id"],
+            "size_bytes": size,
+            "current_version": 1
+        }
     finally:
-        db.close()
-
-    return {
-        "folder_id": folder_id,
-        "uploaded": len(results),
-        "files": results,
-    }
+        conn.close()
 
 
-class RenameFolderPayload(BaseModel):
-    name: str
-
+# ─────────────────────────────────────────────
+# Rename folder
+# ─────────────────────────────────────────────
 
 @router.patch("/{folder_id}/rename")
-def rename_folder(
-    folder_id: int,
-    payload: RenameFolderPayload,
-    current_user=Depends(get_current_user),
-):
-    """Rename a folder."""
-    new_name = payload.name.strip()
-    if not new_name:
-        raise HTTPException(status_code=422, detail="Folder name must not be empty")
-
-    db = get_db()
+def rename_folder(folder_id: int, body: FolderRename, user=Depends(get_current_user)):
+    conn = get_db()
     try:
-        folder = db.execute(
+        folder = conn.execute(
             "SELECT * FROM folders WHERE id = ?", (folder_id,)
         ).fetchone()
-        _assert_owns_folder(folder, current_user["id"])
+        if not folder:
+            raise HTTPException(status_code=404, detail="Folder not found")
+        _check_folder_access(conn, folder, user, require_write=True)
 
-        # Check for duplicate name in same parent
-        existing = db.execute(
-            """
-            SELECT id FROM folders
-            WHERE owner_id = ? AND name = ? AND parent_id IS ? AND id != ?
-            """,
-            (current_user["id"], new_name, folder["parent_id"], folder_id),
-        ).fetchone()
-        if existing:
-            raise HTTPException(
-                status_code=409,
-                detail=f"A folder named '{new_name}' already exists here",
-            )
-
-        db.execute(
+        conn.execute(
             "UPDATE folders SET name = ?, updated_at = datetime('now') WHERE id = ?",
-            (new_name, folder_id),
+            (body.name.strip(), folder_id)
         )
-        db.commit()
-    except HTTPException:
-        raise
-    except Exception:
-        db.rollback()
-        raise
+        conn.commit()
+        return {"detail": "Renamed", "name": body.name.strip()}
     finally:
-        db.close()
-
-    return {"folder_id": folder_id, "name": new_name}
+        conn.close()
 
 
-@router.delete("/{folder_id}")
-def delete_folder(folder_id: int, current_user=Depends(get_current_user)):
-    """
-    Delete a folder and everything inside it recursively
-    (subfolders, files, all versions) from DB and disk.
-    """
-    db = get_db()
+# ─────────────────────────────────────────────
+# Delete folder (cascades to children + files in DB)
+# ─────────────────────────────────────────────
+
+@router.delete("/{folder_id}", status_code=204)
+def delete_folder(folder_id: int, user=Depends(get_current_user)):
+    conn = get_db()
     try:
-        folder = db.execute(
+        folder = conn.execute(
             "SELECT * FROM folders WHERE id = ?", (folder_id,)
         ).fetchone()
-        _assert_owns_folder(folder, current_user["id"])
+        if not folder:
+            raise HTTPException(status_code=404, detail="Folder not found")
+        _check_folder_access(conn, folder, user, require_write=True)
 
-        # Collect all folder IDs in the subtree (BFS)
-        all_folder_ids = [folder_id]
-        queue = [folder_id]
-        while queue:
-            current = queue.pop(0)
-            children = db.execute(
-                "SELECT id FROM folders WHERE parent_id = ?", (current,)
-            ).fetchall()
-            for child in children:
-                all_folder_ids.append(child["id"])
-                queue.append(child["id"])
+        # Collect all files inside this folder tree and delete from disk
+        _delete_folder_files_from_disk(conn, folder_id)
 
-        # Collect all files in all folders of the subtree
-        placeholders = ",".join("?" * len(all_folder_ids))
-        file_rows = db.execute(
-            f"""
-            SELECT f.stored_name, f.current_version,
-                   v.stored_name AS ver_stored_name, v.version_num
-            FROM files f
-            JOIN versions v ON v.file_id = f.id
-            WHERE f.folder_id IN ({placeholders})
-            """,
-            all_folder_ids,
-        ).fetchall()
-
-        # Remove all version files from disk
-        for row in file_rows:
-            if row["version_num"] == row["current_version"]:
-                path = os.path.join(FILES_DIR, row["ver_stored_name"])
-            else:
-                path = os.path.join(VERSIONS_DIR, row["ver_stored_name"])
-                if not os.path.exists(path):
-                    path = os.path.join(FILES_DIR, row["ver_stored_name"])
-            if os.path.exists(path):
-                os.remove(path)
-
-        # ON DELETE CASCADE handles files + versions rows when folders are deleted
-        db.execute("DELETE FROM folders WHERE id = ?", (folder_id,))
-        db.commit()
-    except HTTPException:
-        raise
-    except Exception:
-        db.rollback()
-        raise
+        conn.execute("DELETE FROM folders WHERE id = ?", (folder_id,))
+        conn.commit()
     finally:
-        db.close()
+        conn.close()
 
-    return {"detail": f"Folder {folder_id} and all its contents deleted successfully."}
+
+def _delete_folder_files_from_disk(conn, folder_id: int):
+    """Recursively delete all files on disk for a folder tree."""
+    files = conn.execute(
+        "SELECT stored_name FROM files WHERE folder_id = ?", (folder_id,)
+    ).fetchall()
+    for f in files:
+        p = Path(FILES_DIR) / f["stored_name"]
+        if p.exists():
+            p.unlink()
+        # Also clean up version files
+        versions = conn.execute(
+            """SELECT v.stored_name FROM versions v
+               JOIN files fi ON fi.id = v.file_id
+               WHERE fi.folder_id = ?""",
+            (folder_id,)
+        ).fetchall()
+        for v in versions:
+            vp = Path(VERSIONS_DIR) / v["stored_name"]
+            if vp.exists():
+                vp.unlink()
+
+    # Recurse into subfolders
+    children = conn.execute(
+        "SELECT id FROM folders WHERE parent_id = ?", (folder_id,)
+    ).fetchall()
+    for child in children:
+        _delete_folder_files_from_disk(conn, child["id"])

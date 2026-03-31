@@ -1,1551 +1,1358 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>CLOTE</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
-    <style>
-         :root {
-            --bg: #0d1117;
-            --surface: #161b22;
-            --elevated: #1c2128;
-            --overlay: #21262d;
-            --hover: #262c36;
-            --border: #30363d;
-            --border2: #21262d;
-            --text: #e6edf3;
-            --text2: #8b949e;
-            --text3: #484f58;
-            --accent: #58a6ff;
-            --accentH: #79b8ff;
-            --accentD: #1f3a5f;
-            --green: #3fb950;
-            --greenD: #1a3a23;
-            --red: #f85149;
-            --redD: #3a1a1a;
-            --yellow: #d29922;
-            --purple: #bc8cff;
-            --sidebar: 240px;
-            --topbar: 52px;
-            --r: 6px;
-            --mono: 'JetBrains Mono', monospace;
-            --ui: 'Inter', sans-serif;
-        }
-        
-        *,
-        *::before,
-        *::after {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0
-        }
-        
-        html,
-        body {
-            height: 100%;
-            background: var(--bg);
-            color: var(--text);
-            font-family: var(--ui);
-            font-size: 14px;
-            -webkit-font-smoothing: antialiased
-        }
-        
-        button {
-            font-family: var(--ui);
-            font-size: 13px;
-            cursor: pointer;
-            border: none;
-            outline: none
-        }
-        
-        input {
-            font-family: var(--ui);
-            font-size: 13px;
-            background: var(--overlay);
-            border: 1px solid var(--border);
-            border-radius: var(--r);
-            color: var(--text);
-            padding: 7px 10px;
-            outline: none;
-            width: 100%
-        }
-        
-        input:focus {
-            border-color: var(--accent)
-        }
-        
-        input::placeholder {
-            color: var(--text3)
-        }
-        
-        ::-webkit-scrollbar {
-            width: 5px;
-            height: 5px
-        }
-        
-        ::-webkit-scrollbar-track {
-            background: transparent
-        }
-        
-        ::-webkit-scrollbar-thumb {
-            background: var(--border);
-            border-radius: 3px
-        }
-        /* ── layout ── */
-        
-        #app {
-            display: flex;
-            flex-direction: column;
-            height: 100vh;
-            overflow: hidden
-        }
-        
-        .page {
-            display: flex;
-            flex-direction: column;
-            height: 100vh;
-            align-items: center;
-            justify-content: center;
-            position: relative;
-            overflow: hidden
-        }
-        
-        .grid-bg {
-            position: absolute;
-            inset: 0;
-            background-image: linear-gradient(var(--border2) 1px, transparent 1px), linear-gradient(90deg, var(--border2) 1px, transparent 1px);
-            background-size: 40px 40px;
-            opacity: .35
-        }
-        
-        .glow {
-            position: absolute;
-            top: 35%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 500px;
-            height: 300px;
-            background: radial-gradient(ellipse, rgba(88, 166, 255, .07) 0%, transparent 70%);
-            pointer-events: none
-        }
-        /* ── auth card ── */
-        
-        .auth-card {
-            position: relative;
-            z-index: 1;
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 36px 40px;
-            width: 380px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, .6);
-            animation: pop .2s ease
-        }
-        
-        .logo {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-bottom: 4px
-        }
-        
-        .logo-hex {
-            font-size: 26px;
-            color: var(--accent)
-        }
-        
-        .logo-text {
-            font-family: var(--mono);
-            font-size: 20px;
-            font-weight: 600;
-            letter-spacing: .1em
-        }
-        
-        .tagline {
-            color: var(--text3);
-            font-size: 11px;
-            margin-bottom: 24px;
-            font-family: var(--mono)
-        }
-        
-        .tabs {
-            display: flex;
-            border-bottom: 1px solid var(--border);
-            margin-bottom: 20px
-        }
-        
-        .tab {
-            background: transparent;
-            color: var(--text3);
-            padding: 8px 16px;
-            font-size: 13px;
-            font-weight: 500;
-            border-bottom: 2px solid transparent;
-            margin-bottom: -1px;
-            transition: .15s
-        }
-        
-        .tab.active {
-            color: var(--accent);
-            border-bottom-color: var(--accent)
-        }
-        
-        .tab:hover:not(.active) {
-            color: var(--text2)
-        }
-        
-        .field {
-            display: flex;
-            flex-direction: column;
-            gap: 5px;
-            margin-bottom: 12px
-        }
-        
-        .field label {
-            font-size: 11px;
-            color: var(--text2);
-            font-weight: 500
-        }
-        
-        .btn {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            padding: 7px 14px;
-            border-radius: var(--r);
-            font-weight: 500;
-            font-size: 13px;
-            white-space: nowrap;
-            transition: .15s
-        }
-        
-        .btn-primary {
-            background: var(--accent);
-            color: #0d1117
-        }
-        
-        .btn-primary:hover {
-            background: var(--accentH)
-        }
-        
-        .btn-primary:disabled {
-            opacity: .4;
-            cursor: not-allowed
-        }
-        
-        .btn-ghost {
-            background: transparent;
-            color: var(--text2);
-            border: 1px solid var(--border)
-        }
-        
-        .btn-ghost:hover {
-            background: var(--hover);
-            color: var(--text)
-        }
-        
-        .btn-danger {
-            background: transparent;
-            color: var(--red);
-            border: 1px solid var(--redD)
-        }
-        
-        .btn-danger:hover {
-            background: var(--redD)
-        }
-        
-        .btn-full {
-            width: 100%;
-            justify-content: center;
-            margin-top: 4px
-        }
-        
-        .auth-footer {
-            margin-top: 16px;
-            text-align: center;
-            font-size: 12px;
-            color: var(--text3)
-        }
-        
-        .link-btn {
-            background: none;
-            color: var(--accent);
-            font-size: 12px;
-            padding: 0
-        }
-        
-        .link-btn:hover {
-            text-decoration: underline;
-            color: var(--accentH)
-        }
-        /* ── dashboard ── */
-        
-        .topbar {
-            height: var(--topbar);
-            min-height: var(--topbar);
-            background: var(--surface);
-            border-bottom: 1px solid var(--border);
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 0 20px;
-            z-index: 10
-        }
-        
-        .topbar-left {
-            display: flex;
-            align-items: center;
-            gap: 8px
-        }
-        
-        .topbar-logo {
-            font-family: var(--mono);
-            font-size: 14px;
-            font-weight: 600;
-            color: var(--accent);
-            letter-spacing: .08em
-        }
-        
-        .topbar-sep {
-            color: var(--text3)
-        }
-        
-        .topbar-bc {
-            font-size: 13px;
-            color: var(--text2)
-        }
-        
-        .topbar-right {
-            display: flex;
-            align-items: center;
-            gap: 10px
-        }
-        
-        .topbar-user {
-            font-size: 12px;
-            color: var(--text3);
-            font-family: var(--mono)
-        }
-        
-        .dash-body {
-            display: flex;
-            flex: 1;
-            overflow: hidden
-        }
-        /* ── sidebar ── */
-        
-        .sidebar {
-            width: var(--sidebar);
-            min-width: var(--sidebar);
-            background: var(--surface);
-            border-right: 1px solid var(--border);
-            display: flex;
-            flex-direction: column;
-            overflow: hidden
-        }
-        
-        .sb-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 10px 12px;
-            border-bottom: 1px solid var(--border2)
-        }
-        
-        .sb-title {
-            font-size: 10px;
-            font-weight: 600;
-            letter-spacing: .12em;
-            color: var(--text3);
-            font-family: var(--mono)
-        }
-        
-        .sb-add {
-            background: transparent;
-            color: var(--text3);
-            font-size: 18px;
-            padding: 0 4px;
-            line-height: 1;
-            border-radius: 4px
-        }
-        
-        .sb-add:hover {
-            background: var(--hover);
-            color: var(--text)
-        }
-        
-        .sb-new {
-            padding: 6px 10px;
-            border-bottom: 1px solid var(--border2)
-        }
-        
-        .sb-new input {
-            font-size: 12px;
-            padding: 5px 8px
-        }
-        
-        .folder-tree {
-            flex: 1;
-            overflow-y: auto;
-            padding: 4px 0
-        }
-        
-        .sb-empty {
-            padding: 12px 16px;
-            font-size: 12px;
-            color: var(--text3);
-            font-family: var(--mono)
-        }
-        
-        .f-row {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            height: 28px;
-            cursor: pointer;
-            border-radius: 4px;
-            margin: 1px 6px;
-            padding-right: 8px;
-            color: var(--text2);
-            font-size: 13px;
-            transition: .15s;
-            user-select: none
-        }
-        
-        .f-row:hover {
-            background: var(--hover);
-            color: var(--text)
-        }
-        
-        .f-row.active {
-            background: var(--accentD);
-            color: var(--accent)
-        }
-        
-        .f-chev {
-            font-size: 13px;
-            color: var(--text3);
-            transition: transform .15s;
-            display: inline-block;
-            width: 12px;
-            text-align: center
-        }
-        
-        .f-chev.open {
-            transform: rotate(90deg)
-        }
-        
-        .f-icon {
-            font-size: 12px;
-            opacity: .7
-        }
-        
-        .f-name {
-            flex: 1;
-            overflow: hidden;
-            white-space: nowrap;
-            text-overflow: ellipsis;
-            font-size: 13px
-        }
-        /* ── main ── */
-        
-        .main-area {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-            background: var(--bg)
-        }
-        
-        .toolbar {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 10px 20px;
-            border-bottom: 1px solid var(--border2);
-            gap: 12px
-        }
-        
-        .toolbar-left,
-        .toolbar-right {
-            display: flex;
-            align-items: center;
-            gap: 8px
-        }
-        
-        .search {
-            width: 220px
-        }
-        
-        .new-folder-bar {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            padding: 8px 20px;
-            background: var(--surface);
-            border-bottom: 1px solid var(--border2)
-        }
-        
-        .new-folder-bar input {
-            max-width: 240px
-        }
-        
-        .file-grid {
-            flex: 1;
-            overflow-y: auto;
-            padding: 20px;
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(155px, 1fr));
-            gap: 10px;
-            align-content: start
-        }
-        
-        .card {
-            background: var(--surface);
-            border: 1px solid var(--border2);
-            border-radius: 8px;
-            padding: 14px 12px 10px;
-            cursor: pointer;
-            transition: border-color .15s, background .15s, transform .1s;
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-            user-select: none
-        }
-        
-        .card:hover {
-            border-color: var(--border);
-            background: var(--elevated);
-            transform: translateY(-1px)
-        }
-        
-        .card:active {
-            transform: translateY(0)
-        }
-        
-        .card.folder {
-            border-color: var(--accentD)
-        }
-        
-        .card.folder:hover {
-            border-color: var(--accent)
-        }
-        
-        .card-icon {
-            font-size: 26px;
-            line-height: 1;
-            margin-bottom: 2px
-        }
-        
-        .card-name {
-            font-size: 12px;
-            font-weight: 500;
-            overflow: hidden;
-            white-space: nowrap;
-            text-overflow: ellipsis
-        }
-        
-        .card-meta {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            font-size: 11px;
-            color: var(--text3);
-            font-family: var(--mono)
-        }
-        
-        .card-date {
-            font-size: 10px;
-            color: var(--text3);
-            font-family: var(--mono)
-        }
-        
-        .tag {
-            display: inline-flex;
-            align-items: center;
-            padding: 1px 7px;
-            border-radius: 20px;
-            font-size: 10px;
-            font-weight: 600;
-            font-family: var(--mono)
-        }
-        
-        .tag-blue {
-            background: var(--accentD);
-            color: var(--accent)
-        }
-        
-        .tag-green {
-            background: var(--greenD);
-            color: var(--green)
-        }
-        
-        .empty-state {
-            grid-column: 1/-1;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 60px 20px;
-            gap: 8px;
-            color: var(--text3);
-            text-align: center
-        }
-        
-        .empty-icon {
-            font-size: 36px;
-            opacity: .25;
-            margin-bottom: 8px
-        }
-        
-        .empty-hint {
-            font-size: 12px;
-            opacity: .6
-        }
-        /* ── spinner ── */
-        
-        .spinner-wrap {
-            flex: 1;
-            display: flex;
-            align-items: center;
-            justify-content: center
-        }
-        
-        .spinner {
-            width: 24px;
-            height: 24px;
-            border: 2px solid var(--border);
-            border-top-color: var(--accent);
-            border-radius: 50%;
-            animation: spin .7s linear infinite
-        }
-        
-        @keyframes spin {
-            to {
-                transform: rotate(360deg)
-            }
-        }
-        /* ── modal ── */
-        
-        .backdrop {
-            position: fixed;
-            inset: 0;
-            background: rgba(0, 0, 0, .7);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 1000;
-            animation: fadeIn .15s ease
-        }
-        
-        .modal {
-            background: var(--elevated);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 24px;
-            min-width: 340px;
-            max-width: 560px;
-            width: 100%;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, .6);
-            animation: pop .15s ease
-        }
-        
-        .modal-title {
-            font-size: 15px;
-            font-weight: 600;
-            margin-bottom: 16px
-        }
-        
-        .modal-actions {
-            display: flex;
-            gap: 8px;
-            justify-content: flex-end;
-            margin-top: 20px
-        }
-        
-        .modal-close {
-            position: absolute;
-            top: 16px;
-            right: 16px;
-            background: transparent;
-            color: var(--text3);
-            font-size: 16px;
-            padding: 2px 6px;
-            border-radius: 4px
-        }
-        
-        .modal-close:hover {
-            background: var(--hover);
-            color: var(--text)
-        }
-        
-        .modal-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            margin-bottom: 16px;
-            position: relative
-        }
-        /* ── version modal ── */
-        
-        .ver-modal {
-            max-height: 80vh;
-            display: flex;
-            flex-direction: column
-        }
-        
-        .ver-filename {
-            font-size: 12px;
-            color: var(--text3);
-            font-family: var(--mono);
-            margin-top: 2px
-        }
-        
-        .ver-upload {
-            padding-bottom: 14px;
-            border-bottom: 1px solid var(--border);
-            margin-bottom: 14px
-        }
-        
-        .ver-upload-row {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            flex-wrap: wrap
-        }
-        
-        .ver-list {
-            flex: 1;
-            overflow-y: auto;
-            display: flex;
-            flex-direction: column;
-            gap: 6px
-        }
-        
-        .ver-item {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 10px 12px;
-            border-radius: 8px;
-            background: var(--overlay);
-            border: 1px solid var(--border2);
-            gap: 10px
-        }
-        
-        .ver-item.current {
-            border-color: var(--greenD);
-            background: rgba(63, 185, 80, .04)
-        }
-        
-        .ver-left {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            flex: 1;
-            min-width: 0
-        }
-        
-        .ver-meta {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            font-size: 11px;
-            color: var(--text3);
-            font-family: var(--mono);
-            flex-wrap: wrap
-        }
-        
-        .ver-note {
-            color: var(--text2);
-            font-style: italic
-        }
-        
-        .ver-actions {
-            display: flex;
-            gap: 6px;
-            flex-shrink: 0
-        }
-        
-        .ver-empty {
-            padding: 20px;
-            text-align: center;
-            color: var(--text3);
-            font-size: 13px;
-            font-family: var(--mono)
-        }
-        
-        .file-input-label {
-            display: inline-flex;
-            cursor: pointer
-        }
-        /* ── ctx menu ── */
-        
-        .ctx {
-            position: fixed;
-            background: var(--elevated);
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            padding: 4px;
-            min-width: 175px;
-            box-shadow: 0 4px 16px rgba(0, 0, 0, .5);
-            z-index: 2000;
-            animation: fadeIn .1s ease
-        }
-        
-        .ctx-item {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            padding: 7px 10px;
-            border-radius: 4px;
-            color: var(--text2);
-            font-size: 13px;
-            cursor: pointer;
-            transition: .12s
-        }
-        
-        .ctx-item:hover {
-            background: var(--hover);
-            color: var(--text)
-        }
-        
-        .ctx-item.danger {
-            color: var(--red)
-        }
-        
-        .ctx-item.danger:hover {
-            background: var(--redD)
-        }
-        
-        .ctx-div {
-            height: 1px;
-            background: var(--border);
-            margin: 4px 0
-        }
-        /* ── toast ── */
-        
-        .toasts {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-            z-index: 9999
-        }
-        
-        .toast {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            padding: 10px 16px;
-            border-radius: 8px;
-            background: var(--elevated);
-            border: 1px solid var(--border);
-            box-shadow: 0 4px 16px rgba(0, 0, 0, .5);
-            font-size: 13px;
-            animation: slideIn .2s ease;
-            min-width: 240px;
-            max-width: 360px
-        }
-        
-        .toast.success {
-            border-left: 3px solid var(--green)
-        }
-        
-        .toast.error {
-            border-left: 3px solid var(--red)
-        }
-        
-        .toast.info {
-            border-left: 3px solid var(--accent)
-        }
-        
-        @keyframes pop {
-            from {
-                transform: scale(.96);
-                opacity: 0
-            }
-            to {
-                transform: scale(1);
-                opacity: 1
-            }
-        }
-        
-        @keyframes fadeIn {
-            from {
-                opacity: 0
-            }
-            to {
-                opacity: 1
-            }
-        }
-        
-        @keyframes slideIn {
-            from {
-                transform: translateX(16px);
-                opacity: 0
-            }
-            to {
-                transform: translateX(0);
-                opacity: 1
-            }
-        }
-    </style>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>CLOTE — File Manager</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600&family=Syne:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+:root {
+  --bg:#0d0f14; --surface:#141720; --surface2:#1c2030; --surface3:#242840;
+  --border:#2a2f45; --border2:#363d58;
+  --accent:#5b8cff; --accent2:#7b6cff; --accent-glow:rgba(91,140,255,0.18);
+  --text:#e8eaf2; --text2:#9aa0bb; --text3:#5a6080;
+  --danger:#ff5b72; --danger-soft:rgba(255,91,114,0.12);
+  --success:#4dffa0; --warning:#ffb84d;
+  --project:#a78bfa; --project-soft:rgba(167,139,250,0.14);
+  --mono:'JetBrains Mono',monospace; --sans:'Syne',sans-serif;
+  --radius:10px; --radius-sm:6px; --transition:0.18s ease;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--sans);font-size:14px;overflow:hidden}
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:99px}
+
+/* AUTH */
+#auth-screen{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:var(--bg);background-image:radial-gradient(ellipse 60% 60% at 50% 0%,rgba(91,140,255,0.08) 0%,transparent 70%);z-index:100}
+.auth-card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:40px 44px;width:380px;box-shadow:0 40px 80px rgba(0,0,0,0.5)}
+.auth-logo{font-family:var(--mono);font-size:22px;font-weight:600;letter-spacing:0.08em;margin-bottom:6px}
+.auth-logo span{color:var(--accent)}
+.auth-sub{font-size:12px;color:var(--text3);font-family:var(--mono);margin-bottom:32px}
+.auth-tabs{display:flex;margin-bottom:28px;background:var(--surface2);border-radius:var(--radius-sm);padding:3px}
+.auth-tab{flex:1;padding:8px;text-align:center;border-radius:4px;cursor:pointer;font-size:12px;font-weight:600;color:var(--text3);transition:var(--transition)}
+.auth-tab.active{background:var(--surface3);color:var(--text)}
+.auth-form{display:flex;flex-direction:column;gap:14px}
+.form-group{display:flex;flex-direction:column;gap:6px}
+.form-group label{font-size:11px;color:var(--text3);font-family:var(--mono);letter-spacing:0.05em;text-transform:uppercase}
+.form-group input{background:var(--surface2);border:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:13px;padding:10px 14px;border-radius:var(--radius-sm);outline:none;transition:var(--transition)}
+.form-group input:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-glow)}
+.btn-primary{margin-top:6px;padding:11px;background:var(--accent);color:#fff;border:none;border-radius:var(--radius-sm);cursor:pointer;font-family:var(--sans);font-size:13px;font-weight:600;transition:var(--transition)}
+.btn-primary:hover{background:#6b99ff}
+.auth-msg{margin-top:10px;font-size:12px;font-family:var(--mono);text-align:center;min-height:18px}
+.auth-msg.error{color:var(--danger)} .auth-msg.ok{color:var(--success)}
+
+/* APP */
+#app{display:none;height:100vh;flex-direction:column}
+#app.visible{display:flex}
+
+/* TOPBAR */
+.topbar{height:52px;background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 18px;gap:14px;flex-shrink:0}
+.topbar-logo{font-family:var(--mono);font-size:15px;font-weight:600;letter-spacing:0.1em}
+.topbar-logo span{color:var(--accent)}
+.topbar-sep{width:1px;height:22px;background:var(--border);margin:0 4px;flex-shrink:0}
+.breadcrumb{display:flex;align-items:center;gap:4px;flex:1;overflow:hidden;min-width:0}
+.breadcrumb-item{font-family:var(--mono);font-size:12px;color:var(--text2);cursor:pointer;padding:3px 6px;border-radius:4px;white-space:nowrap;transition:var(--transition)}
+.breadcrumb-item:hover{color:var(--text);background:var(--surface2)}
+.breadcrumb-item.active{color:var(--text)}
+.breadcrumb-sep{color:var(--text3);font-size:11px;flex-shrink:0}
+.topbar-actions{display:flex;align-items:center;gap:8px;flex-shrink:0}
+.tb-btn{display:flex;align-items:center;gap:6px;padding:7px 13px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--surface2);color:var(--text2);cursor:pointer;font-family:var(--sans);font-size:12px;font-weight:500;transition:var(--transition);white-space:nowrap}
+.tb-btn:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-glow)}
+.tb-btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+.tb-btn.primary:hover{background:#6b99ff}
+.tb-btn svg{width:14px;height:14px;flex-shrink:0}
+
+/* user chip */
+.user-chip{display:flex;align-items:center;gap:7px;padding:5px 12px 5px 8px;background:var(--surface2);border:1px solid var(--border);border-radius:99px;font-size:12px;color:var(--text2);cursor:pointer;transition:var(--transition);position:relative}
+.user-chip:hover{border-color:var(--border2);color:var(--text)}
+.user-avatar{width:22px;height:22px;border-radius:50%;background:var(--accent2);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#fff}
+.user-dropdown{position:absolute;top:calc(100% + 8px);right:0;background:var(--surface);border:1px solid var(--border2);border-radius:var(--radius);min-width:180px;z-index:600;box-shadow:0 16px 40px rgba(0,0,0,0.5);display:none;flex-direction:column;overflow:hidden}
+.user-dropdown.open{display:flex;animation:fadeIn 0.12s ease}
+.user-dropdown-header{padding:12px 16px;border-bottom:1px solid var(--border)}
+.user-dropdown-name{font-size:13px;font-weight:600;color:var(--text)}
+.user-dropdown-sub{font-size:11px;color:var(--text3);font-family:var(--mono);margin-top:2px}
+.user-dropdown-item{display:flex;align-items:center;gap:10px;padding:10px 16px;cursor:pointer;font-size:12.5px;color:var(--text2);transition:var(--transition)}
+.user-dropdown-item:hover{background:var(--surface2);color:var(--text)}
+.user-dropdown-item.danger{color:var(--danger)}
+.user-dropdown-item.danger:hover{background:var(--danger-soft)}
+.user-dropdown-item svg{width:13px;height:13px;flex-shrink:0}
+
+/* LAYOUT */
+.layout{display:flex;flex:1;overflow:hidden}
+
+/* SIDEBAR */
+.sidebar{width:232px;flex-shrink:0;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden}
+.sidebar-section{padding:14px 12px 4px;flex-shrink:0}
+.sidebar-label{font-size:10px;color:var(--text3);font-family:var(--mono);text-transform:uppercase;letter-spacing:0.08em;padding:0 4px;margin-bottom:4px;display:flex;align-items:center;justify-content:space-between}
+.sidebar-add-btn{background:none;border:none;cursor:pointer;color:var(--text3);display:flex;align-items:center;padding:2px;border-radius:3px;transition:var(--transition)}
+.sidebar-add-btn:hover{color:var(--accent)}
+.sidebar-add-btn svg{width:12px;height:12px}
+.sidebar-scroll{overflow-y:auto;padding:0 8px 8px}
+.sidebar-divider{height:1px;background:var(--border);margin:6px 0;flex-shrink:0}
+.tree-item{display:flex;align-items:center;gap:7px;padding:7px 8px;border-radius:var(--radius-sm);cursor:pointer;color:var(--text2);font-size:12.5px;transition:var(--transition);user-select:none}
+.tree-item:hover{background:var(--surface2);color:var(--text)}
+.tree-item.active{background:var(--accent-glow);color:var(--accent)}
+.tree-item.proj-active{background:var(--project-soft);color:var(--project)}
+.tree-item svg{width:14px;height:14px;flex-shrink:0}
+.tree-item .item-name{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tree-badge{font-size:9px;padding:1px 6px;border-radius:99px;font-family:var(--mono);background:var(--project-soft);color:var(--project);flex-shrink:0}
+
+/* MAIN */
+.main-pane{flex:1;display:flex;flex-direction:column;overflow:hidden;background:var(--bg)}
+.toolbar{padding:10px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;flex-shrink:0;background:var(--surface)}
+.toolbar-left{display:flex;align-items:center;gap:8px;flex:1}
+.search-box{display:flex;align-items:center;gap:8px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:7px 12px;width:240px}
+.search-box svg{width:13px;height:13px;color:var(--text3);flex-shrink:0}
+.search-box input{background:none;border:none;outline:none;color:var(--text);font-family:var(--mono);font-size:12px;width:100%}
+.search-box input::placeholder{color:var(--text3)}
+.role-badge{font-size:10px;font-family:var(--mono);padding:3px 9px;border-radius:99px;letter-spacing:0.05em;font-weight:600}
+.role-badge.owner{background:rgba(255,184,77,0.14);color:var(--warning)}
+.role-badge.editor{background:var(--accent-glow);color:var(--accent)}
+.role-badge.viewer{background:var(--surface3);color:var(--text3)}
+.view-toggle{display:flex;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);overflow:hidden}
+.view-btn{padding:7px 10px;cursor:pointer;color:var(--text3);display:flex;align-items:center;transition:var(--transition)}
+.view-btn:hover{color:var(--text)}
+.view-btn.active{background:var(--surface3);color:var(--accent)}
+.view-btn svg{width:13px;height:13px}
+
+/* FILE AREA */
+.file-area{flex:1;overflow-y:auto;padding:18px}
+.file-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(148px,1fr));gap:12px}
+.file-list-view{display:flex;flex-direction:column;gap:2px}
+.list-header{display:flex;align-items:center;gap:12px;padding:7px 14px;color:var(--text3);font-size:10px;font-family:var(--mono);text-transform:uppercase;letter-spacing:0.06em;border-bottom:1px solid var(--border);margin-bottom:4px}
+.lh-name{flex:1} .lh-size{width:80px;text-align:right} .lh-date{width:120px;text-align:right}
+
+/* CARDS */
+.file-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px 12px 12px;cursor:pointer;transition:var(--transition);position:relative;display:flex;flex-direction:column;align-items:center;gap:10px;user-select:none}
+.file-card:hover{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-glow);transform:translateY(-1px)}
+.file-icon{width:42px;height:42px;display:flex;align-items:center;justify-content:center;border-radius:8px;font-size:20px}
+.file-name{font-size:11.5px;color:var(--text);text-align:center;word-break:break-word;line-height:1.4;max-width:100%}
+.file-meta{font-size:10px;color:var(--text3);font-family:var(--mono)}
+.ctx-btn{position:absolute;top:7px;right:7px;opacity:0;width:22px;height:22px;display:flex;align-items:center;justify-content:center;border-radius:4px;background:var(--surface2);border:1px solid var(--border);cursor:pointer;transition:var(--transition);color:var(--text2);font-size:14px;line-height:1}
+.file-card:hover .ctx-btn{opacity:1}
+.ctx-btn:hover{color:var(--accent);border-color:var(--accent)}
+
+/* LIST ROWS */
+.list-item{display:flex;align-items:center;gap:12px;padding:9px 14px;border-radius:var(--radius-sm);cursor:pointer;transition:var(--transition);border:1px solid transparent;user-select:none}
+.list-item:hover{background:var(--surface);border-color:var(--border)}
+.list-fi{width:32px;height:32px;font-size:16px;border-radius:6px;flex-shrink:0;display:flex;align-items:center;justify-content:center}
+.list-name{flex:1;font-size:13px;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.list-size{font-family:var(--mono);font-size:11px;color:var(--text3);width:80px;text-align:right}
+.list-date{font-family:var(--mono);font-size:11px;color:var(--text3);width:120px;text-align:right}
+.list-actions{display:flex;gap:4px;opacity:0;transition:var(--transition);flex-shrink:0}
+.list-item:hover .list-actions{opacity:1}
+.icon-btn{width:26px;height:26px;display:flex;align-items:center;justify-content:center;border-radius:4px;background:var(--surface2);border:1px solid var(--border);cursor:pointer;transition:var(--transition);color:var(--text2)}
+.icon-btn:hover{color:var(--accent);border-color:var(--accent);background:var(--accent-glow)}
+.icon-btn.danger:hover{color:var(--danger);border-color:var(--danger);background:var(--danger-soft)}
+.icon-btn svg{width:12px;height:12px}
+
+/* EMPTY */
+.empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;height:80%;gap:12px;color:var(--text3)}
+.empty-state svg{width:48px;height:48px;opacity:0.25}
+.empty-state p{font-size:13px}
+
+/* CTX MENU */
+.ctx-menu{position:fixed;background:var(--surface);border:1px solid var(--border2);border-radius:var(--radius);overflow:hidden;z-index:1000;min-width:185px;box-shadow:0 16px 40px rgba(0,0,0,0.5);display:none}
+.ctx-menu.open{display:block;animation:fadeIn 0.12s ease}
+@keyframes fadeIn{from{opacity:0;transform:scale(0.96) translateY(-4px)}to{opacity:1;transform:scale(1)}}
+.ctx-item{display:flex;align-items:center;gap:10px;padding:9px 14px;cursor:pointer;font-size:12.5px;color:var(--text2);transition:var(--transition)}
+.ctx-item:hover{background:var(--surface2);color:var(--text)}
+.ctx-item.danger{color:var(--danger)}
+.ctx-item.danger:hover{background:var(--danger-soft)}
+.ctx-item svg{width:13px;height:13px;flex-shrink:0}
+.ctx-sep{height:1px;background:var(--border);margin:3px 0}
+
+/* MODALS */
+.modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,0.65);backdrop-filter:blur(4px);z-index:500;display:none;align-items:center;justify-content:center}
+.modal-backdrop.open{display:flex}
+.modal{background:var(--surface);border:1px solid var(--border2);border-radius:14px;padding:28px 30px;width:460px;max-width:96vw;box-shadow:0 40px 80px rgba(0,0,0,0.5);animation:slideUp 0.18s ease}
+.modal.wide{width:600px} .modal.sm{width:360px}
+@keyframes slideUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+.modal-title{font-size:16px;font-weight:600;margin-bottom:20px;color:var(--text)}
+.modal-body{display:flex;flex-direction:column;gap:14px}
+.modal-input{background:var(--surface2);border:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:13px;padding:10px 14px;border-radius:var(--radius-sm);outline:none;width:100%;transition:var(--transition)}
+.modal-input:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-glow)}
+.modal-select{background:var(--surface2);border:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:13px;padding:10px 14px;border-radius:var(--radius-sm);outline:none;width:100%}
+.modal-footer{display:flex;justify-content:flex-end;gap:10px;margin-top:22px}
+.modal-label{font-size:11px;color:var(--text3);font-family:var(--mono);text-transform:uppercase;letter-spacing:0.05em}
+.modal-note{font-size:11px;color:var(--text3);font-family:var(--mono)}
+.btn-ghost{padding:9px 18px;border-radius:var(--radius-sm);border:1px solid var(--border);background:transparent;color:var(--text2);cursor:pointer;font-family:var(--sans);font-size:12px;font-weight:500;transition:var(--transition)}
+.btn-ghost:hover{border-color:var(--accent);color:var(--accent)}
+.btn-danger{padding:9px 18px;border-radius:var(--radius-sm);border:none;background:var(--danger);color:#fff;cursor:pointer;font-family:var(--sans);font-size:12px;font-weight:600;transition:var(--transition)}
+.btn-danger:hover{background:#ff7088}
+
+/* drop zone */
+.drop-zone{border:2px dashed var(--border2);border-radius:var(--radius);padding:28px;text-align:center;cursor:pointer;transition:var(--transition);color:var(--text3);font-size:13px}
+.drop-zone:hover,.drop-zone.drag-over{border-color:var(--accent);color:var(--accent);background:var(--accent-glow)}
+.drop-zone input{display:none}
+.drop-zone-file{margin-top:8px;font-family:var(--mono);font-size:11px;color:var(--success)}
+.upload-progress{height:3px;background:var(--surface3);border-radius:99px;overflow:hidden;margin-top:4px}
+.upload-progress-bar{height:100%;background:var(--accent);border-radius:99px;width:0%;transition:width 0.3s ease}
+
+/* versions */
+.vtable{width:100%;border-collapse:collapse}
+.vtable th,.vtable td{padding:9px 12px;text-align:left;border-bottom:1px solid var(--border);font-size:12px;font-family:var(--mono)}
+.vtable th{color:var(--text3);font-size:10px;text-transform:uppercase;letter-spacing:0.06em}
+.vtable td{color:var(--text2)}
+.vtable tr:last-child td{border-bottom:none}
+.vtable tr:hover td{background:var(--surface2);color:var(--text)}
+.tag{display:inline-block;padding:2px 8px;border-radius:99px;font-size:10px;font-family:var(--mono)}
+.tag.cur{background:rgba(91,140,255,0.18);color:var(--accent)}
+
+/* members */
+.members-list{display:flex;flex-direction:column;gap:6px;max-height:260px;overflow-y:auto}
+.member-row{display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--surface2);border-radius:var(--radius-sm);border:1px solid var(--border)}
+.member-av{width:30px;height:30px;border-radius:50%;background:var(--accent2);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff;flex-shrink:0}
+.member-name{flex:1;font-size:13px;color:var(--text);font-weight:500}
+.member-name small{display:block;font-size:10px;color:var(--text3);font-family:var(--mono);font-weight:400;margin-top:1px}
+.member-role-sel{background:var(--surface);border:1px solid var(--border);color:var(--text2);font-family:var(--mono);font-size:11px;padding:4px 8px;border-radius:4px;outline:none;cursor:pointer}
+.role-chip{font-size:10px;font-family:var(--mono);padding:3px 8px;border-radius:99px}
+.role-chip.owner{background:rgba(255,184,77,0.14);color:var(--warning)}
+.role-chip.editor{background:var(--accent-glow);color:var(--accent)}
+.role-chip.viewer{background:var(--surface3);color:var(--text3)}
+.invite-row{display:flex;gap:8px}
+.invite-row .modal-input{flex:1;margin:0}
+.invite-row select{background:var(--surface2);border:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:13px;padding:10px 10px;border-radius:var(--radius-sm);outline:none}
+.invite-row .btn-primary{margin:0;padding:10px 16px;white-space:nowrap}
+.danger-zone{border-top:1px solid var(--border);padding-top:14px;display:flex;align-items:center;justify-content:space-between}
+.danger-zone-label{font-size:11px;color:var(--text3);font-family:var(--mono)}
+
+/* preview panel */
+.preview-panel{position:fixed;inset:0;z-index:800;background:rgba(13,15,20,0.96);backdrop-filter:blur(12px);display:none;flex-direction:column}
+.preview-panel.open{display:flex}
+.preview-topbar{height:52px;background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 18px;gap:12px;flex-shrink:0}
+.preview-title{flex:1;font-size:13px;font-family:var(--mono);color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.preview-body{flex:1;overflow:auto;display:flex;align-items:center;justify-content:center;padding:24px}
+.preview-body img{max-width:100%;max-height:100%;object-fit:contain;border-radius:var(--radius);box-shadow:0 20px 60px rgba(0,0,0,0.5)}
+.preview-body iframe{width:100%;height:100%;border:none;border-radius:var(--radius);background:#fff}
+.preview-body pre{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:24px;font-family:var(--mono);font-size:13px;color:var(--text2);white-space:pre-wrap;word-break:break-all;max-width:900px;width:100%;overflow:auto;max-height:100%}
+.preview-unsupported{color:var(--text3);text-align:center}
+.preview-unsupported svg{width:48px;height:48px;opacity:0.25;display:block;margin:0 auto 12px}
+.preview-unsupported p{font-size:14px;margin-bottom:6px}
+.preview-unsupported small{font-size:11px;font-family:var(--mono)}
+
+/* drag overlay */
+.drag-overlay{position:fixed;inset:0;z-index:200;display:none;align-items:center;justify-content:center;background:rgba(91,140,255,0.06);border:3px dashed var(--accent);pointer-events:none}
+.drag-overlay.active{display:flex}
+.drag-overlay-text{font-size:20px;font-weight:600;color:var(--accent);letter-spacing:0.06em}
+
+/* toast */
+#toast-container{position:fixed;bottom:24px;right:24px;z-index:9999;display:flex;flex-direction:column;gap:8px;pointer-events:none}
+.toast{padding:11px 18px;border-radius:var(--radius-sm);font-size:12.5px;font-family:var(--mono);box-shadow:0 8px 24px rgba(0,0,0,0.4);animation:toastIn 0.2s ease;border-left:3px solid transparent;background:var(--surface2);color:var(--text);max-width:320px}
+.toast.success{border-color:var(--success)} .toast.error{border-color:var(--danger)} .toast.info{border-color:var(--accent)}
+@keyframes toastIn{from{opacity:0;transform:translateX(20px)}to{opacity:1;transform:translateX(0)}}
+</style>
 </head>
-
 <body>
-    <div id="app"></div>
-    <div class="toasts" id="toasts"></div>
 
-    <script>
-        // ── CONFIG ────────────────────────────────────────────────────────────────────
-        const BASE = "http://10.252.41.216:8000";
+<!-- AUTH -->
+<div id="auth-screen">
+  <div class="auth-card">
+    <div class="auth-logo">CLO<span>TE</span></div>
+    <div class="auth-sub">// self-hosted file manager</div>
+    <div class="auth-tabs">
+      <div class="auth-tab active" id="tab-login" onclick="switchTab('login')">Login</div>
+      <div class="auth-tab" id="tab-reg" onclick="switchTab('register')">Register</div>
+    </div>
+    <div id="form-login" class="auth-form">
+      <div class="form-group"><label>Username</label>
+        <input type="text" id="login-user" placeholder="your username" autocomplete="username"/></div>
+      <div class="form-group"><label>Password</label>
+        <input type="password" id="login-pass" placeholder="••••••••" autocomplete="current-password"
+          onkeydown="if(event.key==='Enter')doLogin()"/></div>
+      <button class="btn-primary" onclick="doLogin()">Login</button>
+      <div class="auth-msg" id="login-msg"></div>
+    </div>
+    <div id="form-register" class="auth-form" style="display:none">
+      <div class="form-group"><label>Username</label>
+        <input type="text" id="reg-user" placeholder="choose a username"/></div>
+      <div class="form-group"><label>Password</label>
+        <input type="password" id="reg-pass" placeholder="••••••••"/></div>
+      <button class="btn-primary" onclick="doRegister()">Create Account</button>
+      <div class="auth-msg" id="reg-msg"></div>
+    </div>
+  </div>
+</div>
 
-        // ── STATE ─────────────────────────────────────────────────────────────────────
-        let state = {
-            token: localStorage.getItem("clote_token") || null,
-            username: localStorage.getItem("clote_user") || null,
-            authMode: "login",
-            selectedFolder: null,
-            files: [],
-            folders: [],
-            loading: false,
-            search: "",
-            showNewFolder: false,
-            newFolderName: "",
-            ctx: null,
-            versionFile: null,
-            renameTarget: null,
-            versionData: null,
-            versionLoading: false,
-        };
+<!-- APP -->
+<div id="app">
+  <div class="topbar">
+    <div class="topbar-logo">CLO<span>TE</span></div>
+    <div class="topbar-sep"></div>
+    <div class="breadcrumb" id="breadcrumb"></div>
+    <div class="topbar-actions">
+      <button class="tb-btn" id="btn-new-folder" onclick="openNewFolderModal()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>New Folder
+      </button>
+      <button class="tb-btn primary" id="btn-upload" onclick="openUploadModal()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>Upload
+      </button>
+      <div class="user-chip" id="user-chip" onclick="toggleUserMenu(event)">
+        <div class="user-avatar" id="user-avatar">?</div>
+        <span id="username-display">user</span>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:11px;height:11px;opacity:0.5;flex-shrink:0"><polyline points="6 9 12 15 18 9"/></svg>
+        <div class="user-dropdown" id="user-dropdown">
+          <div class="user-dropdown-header">
+            <div class="user-dropdown-name" id="dd-username">user</div>
+            <div class="user-dropdown-sub">CLOTE account</div>
+          </div>
+          <div class="user-dropdown-item danger" onclick="confirmLogout(event)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>Sign Out
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 
-        function setState(patch) {
-            Object.assign(state, patch);
-            render();
+  <div class="layout">
+    <!-- SIDEBAR -->
+    <div class="sidebar">
+      <div class="sidebar-section">
+        <div class="sidebar-label">My Files</div>
+      </div>
+      <div class="sidebar-scroll" style="flex-shrink:0;max-height:200px">
+        <div class="tree-item" id="tree-root" onclick="navMyFiles()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+          <span class="item-name">Root</span>
+        </div>
+        <div id="personal-tree"></div>
+      </div>
+
+      <div class="sidebar-divider"></div>
+
+      <div class="sidebar-section">
+        <div class="sidebar-label">
+          Projects
+          <button class="sidebar-add-btn" onclick="openCreateProjectModal()" title="New Project">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          </button>
+        </div>
+      </div>
+      <div class="sidebar-scroll" id="projects-list" style="flex:1"></div>
+    </div>
+
+    <!-- MAIN -->
+    <div class="main-pane">
+      <div class="toolbar">
+        <div class="toolbar-left">
+          <div class="search-box">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <input type="text" id="search-input" placeholder="Search files…" oninput="renderItems()"/>
+          </div>
+          <span class="role-badge" id="role-badge" style="display:none"></span>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <button class="tb-btn" id="btn-proj-settings" style="display:none" onclick="openProjectSettings()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:13px;height:13px"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+            Settings
+          </button>
+          <div class="view-toggle">
+            <div class="view-btn active" id="btn-grid" onclick="setView('grid')" title="Grid">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+            </div>
+            <div class="view-btn" id="btn-list" onclick="setView('list')" title="List">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="file-area" id="file-area"
+        ondragover="onDragOver(event)" ondragleave="onDragLeave(event)" ondrop="onDrop(event)">
+        <div id="file-container"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- DRAG OVERLAY -->
+<div class="drag-overlay" id="drag-overlay"><div class="drag-overlay-text">Drop to upload</div></div>
+
+<!-- CTX MENU -->
+<div class="ctx-menu" id="ctx-menu">
+  <div class="ctx-item" id="ctx-preview" onclick="ctxAction('preview')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>Preview
+  </div>
+  <div class="ctx-item" id="ctx-download" onclick="ctxAction('download')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>Download
+  </div>
+  <div class="ctx-item" id="ctx-versions" onclick="ctxAction('versions')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>Version History
+  </div>
+  <div class="ctx-item" id="ctx-newver" onclick="ctxAction('newver')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>Upload New Version
+  </div>
+  <div class="ctx-sep" id="ctx-sep1"></div>
+  <div class="ctx-item" id="ctx-rename" onclick="ctxAction('rename')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>Rename
+  </div>
+  <div class="ctx-item" id="ctx-move" onclick="ctxAction('move')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="5 9 2 12 5 15"/><polyline points="19 9 22 12 19 15"/><line x1="2" y1="12" x2="22" y2="12"/></svg>Move To…
+  </div>
+  <div class="ctx-sep" id="ctx-sep2"></div>
+  <div class="ctx-item danger" id="ctx-delete" onclick="ctxAction('delete')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6M9 6V4h6v2"/></svg>Delete
+  </div>
+</div>
+
+<!-- MODALS -->
+<!-- Upload -->
+<div class="modal-backdrop" id="modal-upload">
+  <div class="modal"><div class="modal-title">Upload Files</div>
+    <div class="modal-body">
+      <div class="drop-zone" id="upload-drop" onclick="document.getElementById('upload-input').click()"
+        ondragover="dzDragOver(event,'upload-drop')" ondragleave="dzDragLeave('upload-drop')"
+        ondrop="dzDrop(event,'upload-input','upload-drop','upload-drop-label')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="width:32px;height:32px;margin-bottom:8px;display:block;margin-inline:auto"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        Click or drag files here
+        <input type="file" id="upload-input" multiple onchange="updateDropLabel('upload-input','upload-drop-label')"/>
+        <div class="drop-zone-file" id="upload-drop-label"></div>
+      </div>
+      <div class="upload-progress"><div class="upload-progress-bar" id="upload-bar"></div></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-ghost" onclick="closeModal('modal-upload')">Cancel</button>
+      <button class="btn-primary" onclick="doUpload()">Upload</button>
+    </div>
+  </div>
+</div>
+
+<!-- New Folder -->
+<div class="modal-backdrop" id="modal-folder">
+  <div class="modal sm"><div class="modal-title">New Folder</div>
+    <div class="modal-body">
+      <input class="modal-input" type="text" id="folder-name-input" placeholder="Folder name"
+        onkeydown="if(event.key==='Enter')doCreateFolder()"/>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-ghost" onclick="closeModal('modal-folder')">Cancel</button>
+      <button class="btn-primary" onclick="doCreateFolder()">Create</button>
+    </div>
+  </div>
+</div>
+
+<!-- Rename -->
+<div class="modal-backdrop" id="modal-rename">
+  <div class="modal sm"><div class="modal-title">Rename</div>
+    <div class="modal-body">
+      <input class="modal-input" type="text" id="rename-input" placeholder="New name"
+        onkeydown="if(event.key==='Enter')doRename()"/>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-ghost" onclick="closeModal('modal-rename')">Cancel</button>
+      <button class="btn-primary" onclick="doRename()">Rename</button>
+    </div>
+  </div>
+</div>
+
+<!-- Delete Confirm -->
+<div class="modal-backdrop" id="modal-delete">
+  <div class="modal sm"><div class="modal-title">Confirm Delete</div>
+    <div class="modal-body">
+      <p style="color:var(--text2);font-size:13px;line-height:1.6" id="delete-confirm-text">Are you sure?</p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-ghost" onclick="closeModal('modal-delete')">Cancel</button>
+      <button class="btn-danger" onclick="doDelete()">Delete</button>
+    </div>
+  </div>
+</div>
+
+<!-- Version History -->
+<div class="modal-backdrop" id="modal-versions">
+  <div class="modal wide"><div class="modal-title">Version History — <span id="ver-filename" style="color:var(--accent)"></span></div>
+    <div class="modal-body">
+      <table class="vtable"><thead><tr><th>Ver</th><th>Size</th><th>Note</th><th>Date</th><th></th></tr></thead>
+        <tbody id="versions-tbody"></tbody>
+      </table>
+    </div>
+    <div class="modal-footer"><button class="btn-ghost" onclick="closeModal('modal-versions')">Close</button></div>
+  </div>
+</div>
+
+<!-- Upload New Version -->
+<div class="modal-backdrop" id="modal-newver">
+  <div class="modal"><div class="modal-title">Upload New Version</div>
+    <div class="modal-body">
+      <div class="drop-zone" id="ver-drop" onclick="document.getElementById('ver-input').click()"
+        ondragover="dzDragOver(event,'ver-drop')" ondragleave="dzDragLeave('ver-drop')"
+        ondrop="dzDrop(event,'ver-input','ver-drop','ver-drop-label')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="width:28px;height:28px;margin-bottom:8px;display:block;margin-inline:auto"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        Select replacement file
+        <input type="file" id="ver-input" onchange="updateDropLabel('ver-input','ver-drop-label')"/>
+        <div class="drop-zone-file" id="ver-drop-label"></div>
+      </div>
+      <input class="modal-input" type="text" id="ver-note-input" placeholder="Optional note (e.g. Fixed typos)"/>
+      <div class="modal-note">Leave blank for no note</div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-ghost" onclick="closeModal('modal-newver')">Cancel</button>
+      <button class="btn-primary" onclick="doUploadVersion()">Push Version</button>
+    </div>
+  </div>
+</div>
+
+<!-- Move File -->
+<div class="modal-backdrop" id="modal-move">
+  <div class="modal sm"><div class="modal-title">Move To Folder</div>
+    <div class="modal-body">
+      <select class="modal-select" id="move-folder-select"><option value="">— Root —</option></select>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-ghost" onclick="closeModal('modal-move')">Cancel</button>
+      <button class="btn-primary" onclick="doMove()">Move</button>
+    </div>
+  </div>
+</div>
+
+<!-- Create Project -->
+<div class="modal-backdrop" id="modal-create-project">
+  <div class="modal sm"><div class="modal-title">New Project</div>
+    <div class="modal-body">
+      <input class="modal-input" type="text" id="proj-name-input" placeholder="Project name"
+        onkeydown="if(event.key==='Enter')doCreateProject()"/>
+      <input class="modal-input" type="text" id="proj-desc-input" placeholder="Description (optional)"/>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-ghost" onclick="closeModal('modal-create-project')">Cancel</button>
+      <button class="btn-primary" onclick="doCreateProject()">Create</button>
+    </div>
+  </div>
+</div>
+
+<!-- Project Settings -->
+<div class="modal-backdrop" id="modal-proj-settings">
+  <div class="modal wide"><div class="modal-title">Project — <span id="ps-proj-name" style="color:var(--project)"></span></div>
+    <div class="modal-body">
+      <div class="modal-label">Members</div>
+      <div class="members-list" id="ps-members"></div>
+
+      <div id="ps-invite-section">
+        <div class="modal-label">Invite by Username</div>
+        <div class="invite-row">
+          <input class="modal-input" type="text" id="ps-invite-user" placeholder="username"
+            onkeydown="if(event.key==='Enter')doInviteMember()"/>
+          <select id="ps-invite-role">
+            <option value="viewer">Viewer</option>
+            <option value="editor">Editor</option>
+            <option value="owner">Owner</option>
+          </select>
+          <button class="btn-primary" onclick="doInviteMember()">Invite</button>
+        </div>
+      </div>
+
+      <div class="danger-zone" id="ps-danger">
+        <span class="danger-zone-label">Danger zone</span>
+        <button class="btn-danger" onclick="confirmDeleteProject()">Delete Project</button>
+      </div>
+    </div>
+    <div class="modal-footer"><button class="btn-ghost" onclick="closeModal('modal-proj-settings')">Close</button></div>
+  </div>
+</div>
+
+<!-- Sign Out Confirm -->
+<div class="modal-backdrop" id="modal-logout">
+  <div class="modal sm"><div class="modal-title">Sign Out?</div>
+    <div class="modal-body">
+      <p style="color:var(--text2);font-size:13px;line-height:1.6">You'll need to log in again to access your files.</p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-ghost" onclick="closeModal('modal-logout')">Cancel</button>
+      <button class="btn-danger" onclick="doLogout()">Sign Out</button>
+    </div>
+  </div>
+</div>
+
+<!-- FILE PREVIEW PANEL -->
+<div class="preview-panel" id="preview-panel">
+  <div class="preview-topbar">
+    <div class="preview-title" id="preview-title">Preview</div>
+    <button class="tb-btn" onclick="downloadFile(previewFileId)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>Download
+    </button>
+    <button class="tb-btn" onclick="closePreview()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>Close
+    </button>
+  </div>
+  <div class="preview-body" id="preview-body"></div>
+</div>
+
+<div id="toast-container"></div>
+
+<script>
+// ═══════════════════════════════════
+// CONFIG
+// ═══════════════════════════════════
+const API = 'http://127.0.0.1:8000';
+
+// ═══════════════════════════════════
+// STATE
+// ═══════════════════════════════════
+let token         = localStorage.getItem('clote_token') || null;
+let currentUser   = localStorage.getItem('clote_user')  || null;
+let currentUserId = parseInt(localStorage.getItem('clote_uid') || '0');
+
+let mode               = 'personal';  // 'personal' | 'project'
+let currentProjectId   = null;
+let currentProjectRole = null;
+let currentFolderId    = null;
+let folderStack        = [];
+
+let allPersonalFolders = [];
+let allProjects        = [];
+let currentFolders     = [];
+let currentFiles       = [];
+let currentView        = 'grid';
+
+let ctxTarget    = null;
+let verFileId    = null;
+let verCurrentNum = null;
+let newVerFileId  = null;
+let moveFileId    = null;
+let renameTarget  = null;
+let deleteTarget  = null;
+let psProjectId   = null;
+let previewFileId = null;
+
+// ═══════════════════════════════════
+// AUTH
+// ═══════════════════════════════════
+function switchTab(tab) {
+  document.getElementById('form-login').style.display    = tab==='login' ? 'flex' : 'none';
+  document.getElementById('form-register').style.display = tab==='register' ? 'flex' : 'none';
+  document.getElementById('tab-login').classList.toggle('active', tab==='login');
+  document.getElementById('tab-reg').classList.toggle('active', tab==='register');
+}
+
+async function doLogin() {
+  const user = document.getElementById('login-user').value.trim();
+  const pass = document.getElementById('login-pass').value;
+  const msg  = document.getElementById('login-msg');
+  if (!user||!pass) { setMsg(msg,'Enter username and password','error'); return; }
+  const fd = new FormData(); fd.append('username',user); fd.append('password',pass);
+  try {
+    const r = await fetch(`${API}/auth/login`,{method:'POST',body:fd});
+    const d = await r.json();
+    if (!r.ok) { setMsg(msg,d.detail||'Login failed','error'); return; }
+    token=d.access_token; currentUser=user;
+    localStorage.setItem('clote_token',token);
+    localStorage.setItem('clote_user',user);
+    // fetch user id
+    try {
+      const me = await fetch(`${API}/auth/me`,{headers:{Authorization:`Bearer ${token}`}});
+      if (me.ok) { const u=await me.json(); currentUserId=u.id; localStorage.setItem('clote_uid',u.id); }
+    } catch(e) {}
+    setMsg(msg,'Logged in!','ok');
+    startApp();
+  } catch(e) { setMsg(msg,'Cannot reach server','error'); }
+}
+
+async function doRegister() {
+  const user=document.getElementById('reg-user').value.trim();
+  const pass=document.getElementById('reg-pass').value;
+  const msg=document.getElementById('reg-msg');
+  if (!user||!pass) { setMsg(msg,'Fill in both fields','error'); return; }
+  try {
+    const r=await fetch(`${API}/auth/register`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:user,password:pass})});
+    const d=await r.json();
+    if (!r.ok) { setMsg(msg,d.detail||'Register failed','error'); return; }
+    setMsg(msg,'Account created! Please log in.','ok');
+    switchTab('login');
+    document.getElementById('login-user').value=user;
+  } catch(e) { setMsg(msg,'Cannot reach server','error'); }
+}
+
+function setMsg(el,txt,cls){el.textContent=txt;el.className='auth-msg '+cls;}
+function toggleUserMenu(e){e.stopPropagation();document.getElementById('user-dropdown').classList.toggle('open');}
+function confirmLogout(e){e.stopPropagation();document.getElementById('user-dropdown').classList.remove('open');openModal('modal-logout');}
+
+function doLogout(){
+  token=null;currentUser=null;currentUserId=0;
+  localStorage.removeItem('clote_token');localStorage.removeItem('clote_user');localStorage.removeItem('clote_uid');
+  document.getElementById('app').classList.remove('visible');
+  document.getElementById('auth-screen').style.display='flex';
+  currentFolderId=null;folderStack=[];currentProjectId=null;currentProjectRole=null;mode='personal';
+  closeModal('modal-logout');
+}
+
+// ═══════════════════════════════════
+// START
+// ═══════════════════════════════════
+function startApp(){
+  document.getElementById('auth-screen').style.display='none';
+  document.getElementById('app').classList.add('visible');
+  ['username-display','dd-username'].forEach(id=>document.getElementById(id).textContent=currentUser);
+  document.getElementById('user-avatar').textContent=(currentUser||'?')[0].toUpperCase();
+  loadAll();
+}
+
+async function loadAll(){
+  await Promise.all([fetchAllPersonalFolders(),fetchAllProjects()]);
+  navMyFiles();
+}
+
+// ═══════════════════════════════════
+// API
+// ═══════════════════════════════════
+async function apiFetch(path,opts={}){
+  const r=await fetch(`${API}${path}`,{...opts,headers:{Authorization:`Bearer ${token}`,...(opts.headers||{})}});
+  if(r.status===401){doLogout();throw new Error('Unauthorized');}
+  return r;
+}
+
+// ═══════════════════════════════════
+// DATA FETCHERS
+// ═══════════════════════════════════
+async function fetchAllPersonalFolders(){
+  try{const r=await apiFetch('/folders/');if(r.ok){allPersonalFolders=await r.json();}buildSidebar();}catch(e){}
+}
+async function fetchAllProjects(){
+  try{const r=await apiFetch('/projects/');if(r.ok){allProjects=await r.json();}buildSidebar();}catch(e){}
+}
+
+// ═══════════════════════════════════
+// SIDEBAR
+// ═══════════════════════════════════
+function buildSidebar(){
+  // Personal tree
+  document.getElementById('tree-root').classList.toggle('active',mode==='personal'&&currentFolderId===null);
+  const roots=allPersonalFolders.filter(f=>!f.parent_id);
+  document.getElementById('personal-tree').innerHTML=renderFolderTree(roots,1);
+
+  // Projects
+  const pl=document.getElementById('projects-list');
+  if(!allProjects.length){
+    pl.innerHTML=`<div style="font-size:11px;color:var(--text3);font-family:var(--mono);padding:6px 12px 8px">No projects yet</div>`;
+    return;
+  }
+  pl.innerHTML=allProjects.map(p=>`
+    <div class="tree-item ${mode==='project'&&currentProjectId===p.id?'proj-active':''}" onclick="navToProject(${p.id})">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--project)"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg>
+      <span class="item-name">${escHtml(p.name)}</span>
+      <span class="tree-badge">${p.role}</span>
+    </div>`).join('');
+}
+
+function renderFolderTree(folders,depth){
+  return folders.map(f=>{
+    const pl=8+depth*16;
+    const active=mode==='personal'&&currentFolderId===f.id;
+    const children=allPersonalFolders.filter(c=>c.parent_id===f.id);
+    return `<div class="tree-item ${active?'active':''}" style="padding-left:${pl}px" onclick="navToFolder(${f.id},'${escHtml(f.name)}')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+      <span class="item-name">${escHtml(f.name)}</span>
+    </div>${children.length?renderFolderTree(children,depth+1):''}`;
+  }).join('');
+}
+
+// ═══════════════════════════════════
+// NAVIGATION
+// ═══════════════════════════════════
+function navMyFiles(){
+  mode='personal';currentProjectId=null;currentProjectRole=null;currentFolderId=null;folderStack=[];
+  updateWriteUI();loadView();
+}
+
+async function navToProject(projId){
+  mode='project';currentProjectId=projId;currentFolderId=null;folderStack=[];
+  const p=allProjects.find(x=>x.id===projId);
+  currentProjectRole=p?p.role:'viewer';
+  updateWriteUI();loadView();
+}
+
+function navToFolder(id,name){
+  const ei=folderStack.findIndex(f=>f.id===id);
+  if(ei>=0) folderStack=folderStack.slice(0,ei+1);
+  else folderStack.push({id,name});
+  currentFolderId=id;loadView();
+}
+
+function navViaStack(idx){
+  if(idx<0){if(mode==='personal')navMyFiles();else{currentFolderId=null;folderStack=[];loadView();}return;}
+  folderStack=folderStack.slice(0,idx+1);currentFolderId=folderStack[idx].id;loadView();
+}
+
+function canWrite(){
+  return mode==='personal'||currentProjectRole==='owner'||currentProjectRole==='editor';
+}
+
+function updateWriteUI(){
+  const w=canWrite();
+  document.getElementById('btn-new-folder').style.display=w?'':'none';
+  document.getElementById('btn-upload').style.display=w?'':'none';
+  const badge=document.getElementById('role-badge');
+  const sb=document.getElementById('btn-proj-settings');
+  if(mode==='project'&&currentProjectRole){
+    badge.textContent=currentProjectRole;badge.className=`role-badge ${currentProjectRole}`;badge.style.display='';sb.style.display='';
+  } else {badge.style.display='none';sb.style.display='none';}
+}
+
+// ═══════════════════════════════════
+// BREADCRUMB
+// ═══════════════════════════════════
+function buildBreadcrumb(){
+  const bc=document.getElementById('breadcrumb');
+  let h='';
+  if(mode==='personal'){
+    h=`<span class="breadcrumb-item ${currentFolderId===null?'active':''}" onclick="navMyFiles()">My Files</span>`;
+  } else {
+    const p=allProjects.find(x=>x.id===currentProjectId);
+    h=`<span class="breadcrumb-item ${currentFolderId===null?'active':''}" onclick="navViaStack(-1)">${escHtml(p?p.name:'Project')}</span>`;
+  }
+  folderStack.forEach((f,i)=>{
+    const last=i===folderStack.length-1;
+    h+=`<span class="breadcrumb-sep">›</span><span class="breadcrumb-item ${last?'active':''}" onclick="navViaStack(${i})">${escHtml(f.name)}</span>`;
+  });
+  bc.innerHTML=h;
+}
+
+// ═══════════════════════════════════
+// LOAD VIEW
+// ═══════════════════════════════════
+async function loadView(){
+  buildBreadcrumb();buildSidebar();
+  currentFolders=[];currentFiles=[];
+  try{
+    if(currentFolderId){
+      const r=await apiFetch(`/folders/${currentFolderId}`);
+      if(r.ok){const d=await r.json();currentFolders=d.children||[];currentFiles=d.files||[];}
+    } else if(mode==='project'){
+      const r=await apiFetch(`/projects/${currentProjectId}`);
+      if(r.ok){const d=await r.json();currentFolders=d.folders||[];currentFiles=d.files||[];currentProjectRole=d.your_role;updateWriteUI();}
+    } else {
+      const [fr,ffr]=await Promise.all([apiFetch('/folders/'),apiFetch('/files/')]);
+      if(fr.ok){const d=await fr.json();currentFolders=(Array.isArray(d)?d:[]).filter(f=>f.parent_id==null);}
+      if(ffr.ok){const d=await ffr.json();const all=Array.isArray(d)?d:(d.files||[]);currentFiles=all.filter(f=>f.folder_id==null&&f.project_id==null);}
+    }
+  } catch(e){console.error(e);}
+  renderItems();
+}
+
+// ═══════════════════════════════════
+// RENDER
+// ═══════════════════════════════════
+function renderItems(){
+  const q=document.getElementById('search-input').value.toLowerCase();
+  const folders=currentFolders.filter(f=>f.name.toLowerCase().includes(q));
+  const files=currentFiles.filter(f=>f.filename.toLowerCase().includes(q));
+  const c=document.getElementById('file-container');
+  if(!folders.length&&!files.length){
+    c.innerHTML=`<div class="empty-state"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg><p>This folder is empty</p></div>`;
+    return;
+  }
+  const w=canWrite();
+  if(currentView==='grid'){
+    c.innerHTML=`<div class="file-grid">${folders.map(f=>folderCard(f,w)).join('')}${files.map(f=>fileCard(f,w)).join('')}</div>`;
+  } else {
+    c.innerHTML=`<div class="list-header"><div style="width:32px"></div><div class="lh-name">Name</div><div class="lh-size">Size</div><div class="lh-date">Modified</div><div style="width:80px"></div></div>
+    <div class="file-list-view">${folders.map(f=>folderRow(f,w)).join('')}${files.map(f=>fileRow(f,w)).join('')}</div>`;
+  }
+}
+
+function folderCard(f,w){
+  return `<div class="file-card" ondblclick="navToFolder(${f.id},'${escHtml(f.name)}')" oncontextmenu="openCtx(event,'folder',${f.id})">
+    <div class="file-icon" style="background:rgba(255,184,77,0.12);color:#ffb84d">📁</div>
+    <div class="file-name">${escHtml(f.name)}</div>
+    <div class="file-meta">folder</div>
+    ${w?`<div class="ctx-btn" onclick="openCtx(event,'folder',${f.id})">⋮</div>`:''}
+  </div>`;
+}
+function fileCard(f,w){
+  const ic=fileIcon(f.filename,f.mime_type);
+  return `<div class="file-card" ondblclick="openPreview(${f.id})" oncontextmenu="openCtx(event,'file',${f.id})">
+    <div class="file-icon" style="${ic.style}">${ic.emoji}</div>
+    <div class="file-name">${escHtml(f.filename)}</div>
+    <div class="file-meta">${fmtSize(f.size_bytes)}</div>
+    ${w?`<div class="ctx-btn" onclick="openCtx(event,'file',${f.id})">⋮</div>`:''}
+  </div>`;
+}
+function folderRow(f,w){
+  return `<div class="list-item" ondblclick="navToFolder(${f.id},'${escHtml(f.name)}')" oncontextmenu="openCtx(event,'folder',${f.id})">
+    <div class="list-fi" style="background:rgba(255,184,77,0.12);color:#ffb84d">📁</div>
+    <div class="list-name">${escHtml(f.name)}</div>
+    <div class="list-size">—</div><div class="list-date">${fmtDate(f.updated_at||f.created_at)}</div>
+    <div class="list-actions">${w?`<div class="icon-btn" onclick="openCtx(event,'folder',${f.id})"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="5" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="12" cy="19" r="1"/></svg></div>`:''}</div>
+  </div>`;
+}
+function fileRow(f,w){
+  const ic=fileIcon(f.filename,f.mime_type);
+  return `<div class="list-item" ondblclick="openPreview(${f.id})" oncontextmenu="openCtx(event,'file',${f.id})">
+    <div class="list-fi" style="${ic.style}">${ic.emoji}</div>
+    <div class="list-name">${escHtml(f.filename)}</div>
+    <div class="list-size">${fmtSize(f.size_bytes)}</div>
+    <div class="list-date">${fmtDate(f.updated_at||f.created_at)}</div>
+    <div class="list-actions">
+      <div class="icon-btn" onclick="openPreview(${f.id})" title="Preview"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></div>
+      <div class="icon-btn" onclick="downloadFile(${f.id})" title="Download"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></div>
+      ${w?`<div class="icon-btn danger" onclick="confirmDelete('file',${f.id},'${escHtml(f.filename)}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg></div>`:''}
+    </div>
+  </div>`;
+}
+
+// ═══════════════════════════════════
+// CONTEXT MENU
+// ═══════════════════════════════════
+function openCtx(event,type,id){
+  event.preventDefault();event.stopPropagation();
+  ctxTarget=type==='file'
+    ?{type:'file',data:currentFiles.find(f=>f.id===id)}
+    :{type:'folder',data:currentFolders.find(f=>f.id===id)};
+  if(!ctxTarget.data)return;
+  const w=canWrite(),isFile=type==='file';
+  ['ctx-preview','ctx-download','ctx-versions','ctx-newver','ctx-sep1'].forEach(x=>{const e=document.getElementById(x);if(e)e.style.display=isFile?'':'none';});
+  ['ctx-rename','ctx-sep2','ctx-delete'].forEach(x=>{const e=document.getElementById(x);if(e)e.style.display=w?'':'none';});
+  const mv=document.getElementById('ctx-move');if(mv)mv.style.display=(w&&isFile)?'':'none';
+  const nv=document.getElementById('ctx-newver');if(nv)nv.style.display=(isFile&&w)?'':'none';
+  const menu=document.getElementById('ctx-menu');
+  menu.style.left=event.clientX+'px';menu.style.top=event.clientY+'px';
+  menu.classList.add('open');
+}
+function closeCtx(){document.getElementById('ctx-menu').classList.remove('open');}
+function ctxAction(action){
+  closeCtx();if(!ctxTarget)return;
+  const{type,data}=ctxTarget;
+  if(action==='preview'&&type==='file')openPreview(data.id);
+  else if(action==='download'&&type==='file')downloadFile(data.id);
+  else if(action==='versions'&&type==='file')openVersionsModal(data);
+  else if(action==='newver'&&type==='file')openNewVersionModal(data);
+  else if(action==='rename')openRenameModal(type,data);
+  else if(action==='move'&&type==='file')openMoveModal(data);
+  else if(action==='delete')confirmDelete(type,data.id,type==='file'?data.filename:data.name);
+}
+
+// ═══════════════════════════════════
+// UPLOAD
+// ═══════════════════════════════════
+function openUploadModal(){
+  document.getElementById('upload-input').value='';
+  document.getElementById('upload-drop-label').textContent='';
+  document.getElementById('upload-bar').style.width='0%';
+  openModal('modal-upload');
+}
+async function doUpload(){
+  const files=document.getElementById('upload-input').files;
+  if(!files.length){toast('Select at least one file','error');return;}
+  const bar=document.getElementById('upload-bar');let done=0;
+  for(const file of files){
+    const fd=new FormData();fd.append('file',file);
+    try{
+      let url=currentFolderId?`/folders/${currentFolderId}/upload`:'/files/upload';
+      if(!currentFolderId&&mode==='project')fd.append('project_id',currentProjectId);
+      const r=await apiFetch(url,{method:'POST',body:fd});
+      if(!r.ok){const d=await r.json();toast(d.detail||'Upload failed','error');}else done++;
+    }catch(e){toast('Upload error','error');}
+    bar.style.width=`${Math.round((done/files.length)*100)}%`;
+  }
+  toast(`Uploaded ${done}/${files.length} file(s)`,done===files.length?'success':'info');
+  closeModal('modal-upload');loadView();
+}
+
+// ═══════════════════════════════════
+// FOLDER
+// ═══════════════════════════════════
+function openNewFolderModal(){
+  document.getElementById('folder-name-input').value='';
+  openModal('modal-folder');
+  setTimeout(()=>document.getElementById('folder-name-input').focus(),100);
+}
+async function doCreateFolder(){
+  const name=document.getElementById('folder-name-input').value.trim();
+  if(!name){toast('Enter a folder name','error');return;}
+  const body={name};
+  if(currentFolderId)body.parent_id=currentFolderId;
+  if(mode==='project')body.project_id=currentProjectId;
+  try{
+    const r=await apiFetch('/folders/',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+    if(!r.ok){const d=await r.json();toast(d.detail||'Failed','error');return;}
+    toast('Folder created','success');closeModal('modal-folder');
+    await fetchAllPersonalFolders();loadView();
+  }catch(e){toast('Error','error');}
+}
+
+// ═══════════════════════════════════
+// RENAME
+// ═══════════════════════════════════
+function openRenameModal(type,data){
+  renameTarget={type,data};
+  const inp=document.getElementById('rename-input');
+  inp.value=type==='file'?data.filename:data.name;
+  openModal('modal-rename');
+  setTimeout(()=>{inp.focus();inp.select();},100);
+}
+async function doRename(){
+  if(!renameTarget)return;
+  const{type,data}=renameTarget;
+  const newName=document.getElementById('rename-input').value.trim();
+  if(!newName){toast('Enter a name','error');return;}
+  try{
+    const r=await apiFetch(type==='file'?`/files/${data.id}/rename`:`/folders/${data.id}/rename`,{
+      method:'PATCH',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({filename:newName,name:newName})
+    });
+    if(!r.ok){const d=await r.json();toast(d.detail||'Failed','error');return;}
+    toast('Renamed','success');closeModal('modal-rename');
+    if(type==='folder')await fetchAllPersonalFolders();
+    loadView();
+  }catch(e){toast('Error','error');}
+}
+
+// ═══════════════════════════════════
+// DELETE
+// ═══════════════════════════════════
+function confirmDelete(type,id,name){
+  deleteTarget={type,id};
+  document.getElementById('delete-confirm-text').textContent=`Delete "${name}"? This cannot be undone.`;
+  openModal('modal-delete');
+}
+async function doDelete(){
+  if(!deleteTarget)return;
+  const{type,id}=deleteTarget;
+  try{
+    const r=await apiFetch(type==='file'?`/files/${id}`:`/folders/${id}`,{method:'DELETE'});
+    if(!r.ok){const d=await r.json();toast(d.detail||'Failed','error');return;}
+    toast('Deleted','success');closeModal('modal-delete');
+    if(type==='folder')await fetchAllPersonalFolders();
+    loadView();
+  }catch(e){toast('Error','error');}
+}
+
+// ═══════════════════════════════════
+// DOWNLOAD
+// ═══════════════════════════════════
+async function downloadFile(fileId){
+  try{
+    const r=await apiFetch(`/files/${fileId}/download`);
+    if(!r.ok){toast('Download failed','error');return;}
+    const blob=await r.blob();
+    const file=currentFiles.find(f=>f.id===fileId);
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');a.href=url;a.download=file?file.filename:'download';
+    document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url);
+  }catch(e){toast('Download error','error');}
+}
+
+// ═══════════════════════════════════
+// PREVIEW
+// ═══════════════════════════════════
+const PREVIEW_MIME=new Set(['image/jpeg','image/png','image/gif','image/webp','image/svg+xml','application/pdf','text/plain','text/markdown','text/csv','text/html','application/json']);
+
+async function openPreview(fileId){
+  const file=currentFiles.find(f=>f.id===fileId);
+  if(!file)return;
+  previewFileId=fileId;
+  document.getElementById('preview-title').textContent=file.filename;
+  const body=document.getElementById('preview-body');
+  body.innerHTML=`<div style="color:var(--text3);font-family:var(--mono);font-size:13px">Loading…</div>`;
+  document.getElementById('preview-panel').classList.add('open');
+  const mime=file.mime_type||'';
+  if(!PREVIEW_MIME.has(mime)){
+    body.innerHTML=`<div class="preview-unsupported"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><polyline points="13 2 13 9 20 9"/></svg><p>Preview not available</p><small>${mime||'unknown type'}</small></div>`;
+    return;
+  }
+  try{
+    const r=await apiFetch(`/files/${fileId}/preview`);
+    if(!r.ok){body.innerHTML=`<div class="preview-unsupported"><p>Preview failed</p></div>`;return;}
+    const blob=await r.blob();
+    const url=URL.createObjectURL(blob);
+    if(mime.startsWith('image/'))body.innerHTML=`<img src="${url}" alt="${escHtml(file.filename)}"/>`;
+    else if(mime==='application/pdf')body.innerHTML=`<iframe src="${url}"></iframe>`;
+    else{const text=await blob.text();body.innerHTML=`<pre>${escHtml(text)}</pre>`;}
+  }catch(e){body.innerHTML=`<div class="preview-unsupported"><p>Failed to load preview</p></div>`;}
+}
+function closePreview(){
+  document.getElementById('preview-panel').classList.remove('open');
+  document.getElementById('preview-body').innerHTML='';
+  previewFileId=null;
+}
+
+// ═══════════════════════════════════
+// VERSIONS
+// ═══════════════════════════════════
+async function openVersionsModal(file){
+  verFileId=file.id;verCurrentNum=file.current_version??null;
+  document.getElementById('ver-filename').textContent=file.filename;
+  openModal('modal-versions');await loadVersions();
+}
+async function loadVersions(){
+  const tb=document.getElementById('versions-tbody');
+  tb.innerHTML=`<tr><td colspan="5" style="color:var(--text3);text-align:center;padding:16px">Loading…</td></tr>`;
+  try{
+    const r=await apiFetch(`/files/${verFileId}/versions`);
+    if(!r.ok)throw new Error();
+    const raw=await r.json();
+    const list=Array.isArray(raw)?raw:(raw.versions||[]);
+    if(!list.length){tb.innerHTML=`<tr><td colspan="5" style="color:var(--text3);padding:16px">No versions</td></tr>`;return;}
+    list.sort((a,b)=>b.version_num-a.version_num);
+    if(verCurrentNum===null)verCurrentNum=list[0].version_num;
+    tb.innerHTML=list.map(v=>{
+      const cur=v.version_num===verCurrentNum||v.is_current===true;
+      return `<tr>
+        <td>v${v.version_num} ${cur?'<span class="tag cur">current</span>':''}</td>
+        <td>${fmtSize(v.size_bytes)}</td>
+        <td style="max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escHtml(v.note||'—')}</td>
+        <td>${fmtDate(v.created_at)}</td>
+        <td style="display:flex;gap:6px">
+          <div class="icon-btn" onclick="downloadVersion(${verFileId},${v.version_num})" title="Download"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></div>
+          ${!cur?`<div class="icon-btn danger" onclick="deleteVersion(${verFileId},${v.version_num})" title="Delete"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg></div>`:''}
+        </td></tr>`;
+    }).join('');
+  }catch(e){tb.innerHTML=`<tr><td colspan="5" style="color:var(--danger);padding:16px">Failed to load</td></tr>`;}
+}
+async function downloadVersion(fileId,verNum){
+  try{
+    const r=await apiFetch(`/files/${fileId}/versions/${verNum}/download`);
+    const blob=await r.blob();const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');a.href=url;a.download=`v${verNum}`;
+    document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url);
+  }catch(e){toast('Download failed','error');}
+}
+async function deleteVersion(fileId,verNum){
+  if(!confirm(`Delete version ${verNum}?`))return;
+  try{
+    const r=await apiFetch(`/files/${fileId}/versions/${verNum}`,{method:'DELETE'});
+    if(!r.ok){const d=await r.json();toast(d.detail||'Failed','error');return;}
+    toast(`v${verNum} deleted`,'success');await loadVersions();loadView();
+  }catch(e){toast('Error','error');}
+}
+
+// ═══════════════════════════════════
+// UPLOAD NEW VERSION
+// ═══════════════════════════════════
+function openNewVersionModal(file){
+  newVerFileId=file.id;
+  document.getElementById('ver-input').value='';
+  document.getElementById('ver-drop-label').textContent='';
+  document.getElementById('ver-note-input').value='';
+  openModal('modal-newver');
+}
+async function doUploadVersion(){
+  if(!newVerFileId)return;
+  const inp=document.getElementById('ver-input');
+  const note=document.getElementById('ver-note-input').value.trim();
+  if(!inp.files||!inp.files.length){toast('Select a file first','error');return;}
+  const fd=new FormData();fd.append('file',inp.files[0]);if(note)fd.append('note',note);
+  try{
+    const r=await apiFetch(`/files/${newVerFileId}/upload`,{method:'POST',body:fd});
+    if(!r.ok){const d=await r.json();toast(d.detail||'Failed','error');return;}
+    toast('New version uploaded','success');closeModal('modal-newver');
+    await loadView();
+    const ref=currentFiles.find(f=>f.id===newVerFileId);
+    if(ref&&ctxTarget&&ctxTarget.type==='file')ctxTarget.data=ref;
+  }catch(e){toast('Error','error');}
+}
+
+// ═══════════════════════════════════
+// MOVE
+// ═══════════════════════════════════
+function openMoveModal(file){
+  moveFileId=file.id;
+  const sel=document.getElementById('move-folder-select');
+  const pool=mode==='personal'?allPersonalFolders:currentFolders;
+  sel.innerHTML='<option value="">— Root —</option>'+pool.map(f=>`<option value="${f.id}">${escHtml(f.name)}</option>`).join('');
+  if(file.folder_id)sel.value=file.folder_id;
+  openModal('modal-move');
+}
+async function doMove(){
+  if(!moveFileId)return;
+  const fid=document.getElementById('move-folder-select').value;
+  try{
+    const r=await apiFetch(`/files/${moveFileId}/move`,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({folder_id:fid?parseInt(fid):null})});
+    if(!r.ok){const d=await r.json();toast(d.detail||'Failed','error');return;}
+    toast('File moved','success');closeModal('modal-move');loadView();
+  }catch(e){toast('Error','error');}
+}
+
+// ═══════════════════════════════════
+// PROJECTS
+// ═══════════════════════════════════
+function openCreateProjectModal(){
+  document.getElementById('proj-name-input').value='';
+  document.getElementById('proj-desc-input').value='';
+  openModal('modal-create-project');
+  setTimeout(()=>document.getElementById('proj-name-input').focus(),100);
+}
+async function doCreateProject(){
+  const name=document.getElementById('proj-name-input').value.trim();
+  const desc=document.getElementById('proj-desc-input').value.trim();
+  if(!name){toast('Enter a project name','error');return;}
+  try{
+    const r=await apiFetch('/projects/',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name,description:desc||null})});
+    if(!r.ok){const d=await r.json();toast(d.detail||'Failed','error');return;}
+    const proj=await r.json();
+    toast(`Project "${proj.name}" created`,'success');
+    closeModal('modal-create-project');
+    await fetchAllProjects();
+    navToProject(proj.id);
+  }catch(e){toast('Error','error');}
+}
+
+async function openProjectSettings(){
+  psProjectId=currentProjectId;
+  const p=allProjects.find(x=>x.id===psProjectId);
+  document.getElementById('ps-proj-name').textContent=p?p.name:'';
+  const isOwner=currentProjectRole==='owner';
+  document.getElementById('ps-invite-section').style.display=isOwner?'contents':'none';
+  document.getElementById('ps-danger').style.display=isOwner?'':'none';
+  openModal('modal-proj-settings');
+  await loadProjectMembers();
+}
+
+async function loadProjectMembers(){
+  const list=document.getElementById('ps-members');
+  list.innerHTML=`<div style="color:var(--text3);font-family:var(--mono);font-size:12px;padding:8px">Loading…</div>`;
+  try{
+    const r=await apiFetch(`/projects/${psProjectId}/members`);
+    if(!r.ok)throw new Error();
+    const members=await r.json();
+    const isOwner=currentProjectRole==='owner';
+    list.innerHTML=members.map(m=>{
+      const isMe=m.id===currentUserId;
+      return `<div class="member-row">
+        <div class="member-av">${m.username[0].toUpperCase()}</div>
+        <div class="member-name">${escHtml(m.username)}<small>${isMe?'you':''}</small></div>
+        ${isOwner&&!isMe
+          ?`<select class="member-role-sel" onchange="changeMemberRole(${m.id},this.value)">
+              <option value="viewer" ${m.role==='viewer'?'selected':''}>Viewer</option>
+              <option value="editor" ${m.role==='editor'?'selected':''}>Editor</option>
+              <option value="owner"  ${m.role==='owner' ?'selected':''}>Owner</option>
+            </select>
+            <div class="icon-btn danger" onclick="removeMember(${m.id},'${escHtml(m.username)}')" title="Remove">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </div>`
+          :`<span class="role-chip ${m.role}">${m.role}</span>`
         }
+      </div>`;
+    }).join('');
+  }catch(e){list.innerHTML=`<div style="color:var(--danger);font-size:12px;padding:8px">Failed to load members</div>`;}
+}
 
-        // ── API ───────────────────────────────────────────────────────────────────────
-        function ah(extra) {
-            return Object.assign({
-                Authorization: "Bearer " + state.token
-            }, extra || {});
-        }
-        async function api(method, path, body, isForm) {
-            const opts = {
-                method,
-                headers: ah(isForm ? {} : (body ? {
-                    "Content-Type": "application/json"
-                } : {}))
-            };
-            if (body) opts.body = isForm ? body : JSON.stringify(body);
-            const res = await fetch(BASE + path, opts);
-            if (!res.ok) {
-                const e = await res.json().catch(() => ({
-                    detail: res.statusText
-                }));
-                throw new Error(e.detail || "Request failed");
-            }
-            return res.json();
-        }
-        async function apiDownload(path, filename) {
-            const res = await fetch(BASE + path, {
-                headers: ah()
-            });
-            if (!res.ok) throw new Error("Download failed");
-            const blob = await res.blob();
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement("a");
-            a.href = url;
-            a.download = filename;
-            a.click();
-            URL.revokeObjectURL(url);
-        }
+async function doInviteMember(){
+  const username=document.getElementById('ps-invite-user').value.trim();
+  const role=document.getElementById('ps-invite-role').value;
+  if(!username){toast('Enter a username','error');return;}
+  try{
+    const r=await apiFetch(`/projects/${psProjectId}/members`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username,role})});
+    if(!r.ok){const d=await r.json();toast(d.detail||'Failed','error');return;}
+    toast(`${username} invited as ${role}`,'success');
+    document.getElementById('ps-invite-user').value='';
+    await loadProjectMembers();await fetchAllProjects();
+  }catch(e){toast('Error','error');}
+}
 
-        // ── TOAST ─────────────────────────────────────────────────────────────────────
-        function toast(msg, type) {
-            type = type || "info";
-            const icons = {
-                success: "✓",
-                error: "✕",
-                info: "ℹ"
-            };
-            const el = document.createElement("div");
-            el.className = "toast " + type;
-            el.innerHTML = "<span>" + icons[type] + "</span><span>" + msg + "</span>";
-            document.getElementById("toasts").appendChild(el);
-            setTimeout(() => el.remove(), 3500);
-        }
+async function changeMemberRole(userId,newRole){
+  try{
+    const r=await apiFetch(`/projects/${psProjectId}/members/${userId}`,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({role:newRole})});
+    if(!r.ok){const d=await r.json();toast(d.detail||'Failed','error');return;}
+    toast('Role updated','success');
+  }catch(e){toast('Error','error');}
+}
 
-        // ── LOAD DATA ─────────────────────────────────────────────────────────────────
-        async function loadContents() {
-            setState({
-                loading: true
-            });
-            try {
-                if (!state.selectedFolder) {
-                    const [files, folders] = await Promise.all([
-                        api("GET", "/files/"),
-                        api("GET", "/folders/"),
-                    ]);
-                    setState({
-                        files,
-                        folders,
-                        loading: false
-                    });
-                } else {
-                    const data = await api("GET", "/folders/" + state.selectedFolder.id);
-                    setState({
-                        files: data.files || [],
-                        folders: data.subfolders || [],
-                        loading: false
-                    });
-                }
-            } catch (e) {
-                toast(e.message, "error");
-                setState({
-                    loading: false
-                });
-            }
-        }
+async function removeMember(userId,username){
+  if(!confirm(`Remove ${username} from the project?`))return;
+  try{
+    const r=await apiFetch(`/projects/${psProjectId}/members/${userId}`,{method:'DELETE'});
+    if(!r.ok){const d=await r.json();toast(d.detail||'Failed','error');return;}
+    toast(`${username} removed`,'success');
+    await loadProjectMembers();await fetchAllProjects();
+  }catch(e){toast('Error','error');}
+}
 
-        // ── AUTH ──────────────────────────────────────────────────────────────────────
-        async function handleLogin(e) {
-            e.preventDefault();
-            const username = document.getElementById("inp-username").value.trim();
-            const password = document.getElementById("inp-password").value.trim();
-            if (!username || !password) return;
-            const btn = document.getElementById("auth-btn");
-            btn.disabled = true;
-            btn.textContent = "Please wait…";
-            try {
-                if (state.authMode === "register") {
-                    await api("POST", "/auth/register", {
-                        username,
-                        password
-                    });
-                }
-                const data = await api("POST", "/auth/login", {
-                    username,
-                    password
-                });
-                localStorage.setItem("clote_token", data.access_token);
-                localStorage.setItem("clote_user", username);
-                setState({
-                    token: data.access_token,
-                    username
-                });
-                toast("Welcome, " + username, "success");
-                loadContents();
-            } catch (e) {
-                toast(e.message, "error");
-                btn.disabled = false;
-                btn.textContent = state.authMode === "login" ? "Sign in" : "Create account";
-            }
-        }
+async function confirmDeleteProject(){
+  const p=allProjects.find(x=>x.id===psProjectId);
+  if(!confirm(`Delete project "${p?.name}"? All files inside will be permanently deleted.`))return;
+  try{
+    const r=await apiFetch(`/projects/${psProjectId}`,{method:'DELETE'});
+    if(!r.ok){const d=await r.json();toast(d.detail||'Failed','error');return;}
+    toast('Project deleted','success');closeModal('modal-proj-settings');
+    await fetchAllProjects();navMyFiles();
+  }catch(e){toast('Error','error');}
+}
 
-        function logout() {
-            localStorage.removeItem("clote_token");
-            localStorage.removeItem("clote_user");
-            setState({
-                token: null,
-                username: null,
-                selectedFolder: null,
-                files: [],
-                folders: []
-            });
-        }
+// ═══════════════════════════════════
+// DRAG & DROP
+// ═══════════════════════════════════
+let dragCtr=0;
+document.addEventListener('dragenter',e=>{if(e.dataTransfer.types.includes('Files')){dragCtr++;document.getElementById('drag-overlay').classList.add('active');}});
+document.addEventListener('dragleave',()=>{dragCtr--;if(dragCtr<=0){dragCtr=0;document.getElementById('drag-overlay').classList.remove('active');}});
+document.addEventListener('dragover',e=>e.preventDefault());
+document.addEventListener('drop',e=>{dragCtr=0;document.getElementById('drag-overlay').classList.remove('active');});
+function onDragOver(e){e.preventDefault();}
+function onDragLeave(e){}
+async function onDrop(e){
+  e.preventDefault();
+  const files=Array.from(e.dataTransfer.files);if(!files.length)return;
+  let done=0;
+  for(const file of files){
+    const fd=new FormData();fd.append('file',file);
+    try{
+      let url=currentFolderId?`/folders/${currentFolderId}/upload`:'/files/upload';
+      if(!currentFolderId&&mode==='project')fd.append('project_id',currentProjectId);
+      const r=await apiFetch(url,{method:'POST',body:fd});if(r.ok)done++;
+    }catch(e){}
+  }
+  toast(`Uploaded ${done}/${files.length} file(s)`,'success');loadView();
+}
+function dzDragOver(e,z){e.preventDefault();document.getElementById(z).classList.add('drag-over');}
+function dzDragLeave(z){document.getElementById(z).classList.remove('drag-over');}
+function dzDrop(e,inp,zone,lbl){
+  e.preventDefault();document.getElementById(zone).classList.remove('drag-over');
+  const dt=new DataTransfer();Array.from(e.dataTransfer.files).forEach(f=>dt.items.add(f));
+  document.getElementById(inp).files=dt.files;updateDropLabel(inp,lbl);
+}
+function updateDropLabel(inp,lbl){
+  const i=document.getElementById(inp),l=document.getElementById(lbl);
+  if(!l||!i.files||!i.files.length)return;
+  l.textContent=i.files.length===1?i.files[0].name:`${i.files.length} files selected`;
+}
 
-        // ── FILE ACTIONS ──────────────────────────────────────────────────────────────
-        async function handleUpload(e) {
-            const files = Array.from(e.target.files);
-            if (!files.length) return;
-            try {
-                if (state.selectedFolder) {
-                    const fd = new FormData();
-                    files.forEach(f => fd.append("files", f));
-                    await api("POST", "/folders/" + state.selectedFolder.id + "/upload", fd, true);
-                    toast(files.length + " file(s) uploaded to " + state.selectedFolder.name, "success");
-                } else {
-                    for (const f of files) {
-                        const fd = new FormData();
-                        fd.append("file", f);
-                        await api("POST", "/files/upload", fd, true);
-                    }
-                    toast(files.length + " file(s) uploaded", "success");
-                }
-                loadContents();
-            } catch (e) {
-                toast(e.message, "error");
-            }
-            e.target.value = "";
-        }
+// ═══════════════════════════════════
+// VIEW / MODAL HELPERS
+// ═══════════════════════════════════
+function setView(v){currentView=v;document.getElementById('btn-grid').classList.toggle('active',v==='grid');document.getElementById('btn-list').classList.toggle('active',v==='list');renderItems();}
+function openModal(id){document.getElementById(id).classList.add('open');}
+function closeModal(id){document.getElementById(id).classList.remove('open');}
+document.querySelectorAll('.modal-backdrop').forEach(bd=>bd.addEventListener('click',e=>{if(e.target===bd)bd.classList.remove('open');}));
+document.addEventListener('click',e=>{
+  closeCtx();
+  const chip=document.getElementById('user-chip');
+  if(chip&&!chip.contains(e.target))document.getElementById('user-dropdown').classList.remove('open');
+});
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape'){closeCtx();closePreview();document.querySelectorAll('.modal-backdrop.open').forEach(m=>m.classList.remove('open'));}
+});
 
-        async function deleteFile(file) {
-            try {
-                await api("DELETE", "/files/" + file.id);
-                toast(file.filename + " deleted", "success");
-                loadContents();
-            } catch (e) {
-                toast(e.message, "error");
-            }
-        }
+// ═══════════════════════════════════
+// TOAST
+// ═══════════════════════════════════
+function toast(msg,type='info'){
+  const el=document.createElement('div');el.className=`toast ${type}`;el.textContent=msg;
+  document.getElementById('toast-container').appendChild(el);setTimeout(()=>el.remove(),3200);
+}
 
-        async function renameFile(file, newName) {
-            try {
-                await api("PATCH", "/files/" + file.id + "/rename", {
-                    filename: newName
-                });
-                toast("Renamed", "success");
-                loadContents();
-            } catch (e) {
-                toast(e.message, "error");
-            }
-        }
+// ═══════════════════════════════════
+// UTILS
+// ═══════════════════════════════════
+function escHtml(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');}
+function fmtSize(b){if(b==null)return'—';if(b<1024)return b+' B';if(b<1048576)return(b/1024).toFixed(1)+' KB';if(b<1073741824)return(b/1048576).toFixed(1)+' MB';return(b/1073741824).toFixed(2)+' GB';}
+function fmtDate(iso){if(!iso)return'—';return new Date(iso).toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'});}
+function fileIcon(filename,mime){
+  const ext=(filename||'').split('.').pop().toLowerCase(),m=mime||'';
+  if(['jpg','jpeg','png','gif','webp','svg','bmp'].includes(ext)||m.startsWith('image/'))return{emoji:'🖼️',style:'background:rgba(91,140,255,0.12);color:#5b8cff'};
+  if(['mp4','mkv','avi','mov','webm'].includes(ext)||m.startsWith('video/'))return{emoji:'🎬',style:'background:rgba(255,91,114,0.12);color:#ff5b72'};
+  if(['mp3','wav','ogg','flac','aac'].includes(ext)||m.startsWith('audio/'))return{emoji:'🎵',style:'background:rgba(77,255,160,0.12);color:#4dffa0'};
+  if(['pdf'].includes(ext)||m==='application/pdf')return{emoji:'📄',style:'background:rgba(255,91,114,0.12);color:#ff5b72'};
+  if(['zip','rar','7z','tar','gz'].includes(ext))return{emoji:'🗜️',style:'background:rgba(255,184,77,0.12);color:#ffb84d'};
+  if(['js','ts','py','java','cpp','c','go','rs','html','css','json','yaml','xml','sh'].includes(ext))return{emoji:'💻',style:'background:rgba(91,140,255,0.12);color:#5b8cff'};
+  if(['doc','docx','txt','md'].includes(ext))return{emoji:'📝',style:'background:rgba(91,140,255,0.15);color:#7b9fff'};
+  if(['xls','xlsx','csv'].includes(ext))return{emoji:'📊',style:'background:rgba(77,255,160,0.12);color:#4dffa0'};
+  return{emoji:'📦',style:'background:var(--surface2);color:var(--text2)'};
+}
 
-        // ── FOLDER ACTIONS ────────────────────────────────────────────────────────────
-        async function createFolder(name, parentId) {
-            try {
-                await api("POST", "/folders/", {
-                    name,
-                    parent_id: parentId || null
-                });
-                toast("Folder created", "success");
-                loadContents();
-            } catch (e) {
-                toast(e.message, "error");
-            }
-        }
-
-        async function deleteFolder(folder) {
-            try {
-                await api("DELETE", "/folders/" + folder.id);
-                toast(folder.name + " deleted", "success");
-                if (state.selectedFolder && state.selectedFolder.id === folder.id) setState({
-                    selectedFolder: null
-                });
-                loadContents();
-            } catch (e) {
-                toast(e.message, "error");
-            }
-        }
-
-        async function renameFolder(folder, newName) {
-            try {
-                await api("PATCH", "/folders/" + folder.id + "/rename", {
-                    name: newName
-                });
-                toast("Renamed", "success");
-                loadContents();
-            } catch (e) {
-                toast(e.message, "error");
-            }
-        }
-
-        // ── VERSIONS ──────────────────────────────────────────────────────────────────
-        async function openVersions(file) {
-            setState({
-                versionFile: file,
-                versionData: null,
-                versionLoading: true
-            });
-            try {
-                const data = await api("GET", "/files/" + file.id + "/versions");
-                setState({
-                    versionData: data,
-                    versionLoading: false
-                });
-            } catch (e) {
-                toast(e.message, "error");
-                setState({
-                    versionLoading: false
-                });
-            }
-        }
-
-        async function handleVersionUpload(e) {
-            e.preventDefault();
-            const fileInput = document.getElementById("ver-file-input");
-            const note = document.getElementById("ver-note-input").value;
-            if (!fileInput.files[0]) return;
-            const fd = new FormData();
-            fd.append("file", fileInput.files[0]);
-            if (note) fd.append("note", note);
-            try {
-                await api("POST", "/files/" + state.versionFile.id + "/upload", fd, true);
-                toast("New version uploaded", "success");
-                openVersions(state.versionFile);
-                loadContents();
-            } catch (e) {
-                toast(e.message, "error");
-            }
-        }
-
-        async function downloadVersion(fileId, vNum, filename) {
-            try {
-                await apiDownload("/files/" + fileId + "/versions/" + vNum + "/download", filename + "_v" + vNum);
-            } catch (e) {
-                toast(e.message, "error");
-            }
-        }
-
-        async function deleteVersion(fileId, vNum) {
-            try {
-                await api("DELETE", "/files/" + fileId + "/versions/" + vNum);
-                toast("Version " + vNum + " deleted", "success");
-                openVersions(state.versionFile);
-            } catch (e) {
-                toast(e.message, "error");
-            }
-        }
-
-        // ── CONTEXT MENU ──────────────────────────────────────────────────────────────
-        function showCtx(e, items) {
-            e.preventDefault();
-            setState({
-                ctx: {
-                    x: e.clientX,
-                    y: e.clientY,
-                    items
-                }
-            });
-        }
-
-        document.addEventListener("click", () => {
-            if (state.ctx) setState({
-                ctx: null
-            });
-        });
-
-        // ── RENAME MODAL ──────────────────────────────────────────────────────────────
-        function showRename(target) {
-            setState({
-                renameTarget: target
-            });
-        }
-
-        function handleRenameConfirm() {
-            const val = document.getElementById("rename-input").value.trim();
-            if (!val) return;
-            const t = state.renameTarget;
-            setState({
-                renameTarget: null
-            });
-            if (t.type === "file") renameFile(t.item, val);
-            else renameFolder(t.item, val);
-        }
-
-        // ── HELPERS ───────────────────────────────────────────────────────────────────
-        function fmtBytes(b) {
-            if (!b) return "—";
-            if (b < 1024) return b + " B";
-            if (b < 1048576) return (b / 1024).toFixed(1) + " KB";
-            return (b / 1048576).toFixed(2) + " MB";
-        }
-
-        function fmtDate(iso) {
-            return new Date(iso).toLocaleString(undefined, {
-                month: "short",
-                day: "numeric",
-                hour: "2-digit",
-                minute: "2-digit"
-            });
-        }
-
-        function fileIcon(filename) {
-            const ext = filename.split(".").pop().toLowerCase();
-            const map = {
-                pdf: "📄",
-                png: "🖼",
-                jpg: "🖼",
-                jpeg: "🖼",
-                mp4: "🎬",
-                mp3: "🎵",
-                zip: "📦",
-                txt: "📝",
-                js: "📜",
-                py: "🐍",
-                md: "📋",
-                docx: "📝",
-                xlsx: "📊"
-            };
-            return map[ext] || "📁";
-        }
-
-        function esc(s) {
-            return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
-        }
-
-        // ── RENDER ────────────────────────────────────────────────────────────────────
-        function render() {
-            const app = document.getElementById("app");
-            if (!state.token) {
-                app.innerHTML = renderAuth();
-            } else {
-                app.innerHTML = renderDash();
-            }
-            bindEvents();
-        }
-
-        function renderAuth() {
-            return '<div class="page">' +
-                '<div class="grid-bg"></div><div class="glow"></div>' +
-                '<div class="auth-card">' +
-                '<div class="logo"><span class="logo-hex">⬡</span><span class="logo-text">CLOTE</span></div>' +
-                '<p class="tagline">self-hosted file management</p>' +
-                '<div class="tabs">' +
-                '<button class="tab' + (state.authMode === "login" ? " active" : "") + '" onclick="setState({authMode:\'login\'})">Login</button>' +
-                '<button class="tab' + (state.authMode === "register" ? " active" : "") + '" onclick="setState({authMode:\'register\'})">Register</button>' +
-                '</div>' +
-                '<form onsubmit="handleLogin(event)">' +
-                '<div class="field"><label>Username</label><input id="inp-username" placeholder="your_username" autocomplete="username" /></div>' +
-                '<div class="field"><label>Password</label><input id="inp-password" type="password" placeholder="••••••••" autocomplete="current-password" /></div>' +
-                '<button id="auth-btn" class="btn btn-primary btn-full">' + (state.authMode === "login" ? "Sign in" : "Create account") + '</button>' +
-                '</form>' +
-                '<p class="auth-footer">' + (state.authMode === "login" ?
-                    'No account? <button class="link-btn" onclick="setState({authMode:\'register\'})">Register</button>' :
-                    'Have one? <button class="link-btn" onclick="setState({authMode:\'login\'})">Sign in</button>') + '</p>' +
-                '</div>' +
-                '</div>';
-        }
-
-        function renderDash() {
-            const bc = state.selectedFolder ? esc(state.selectedFolder.name) : "Root";
-            const filtered_files = state.files.filter(f => f.filename.toLowerCase().includes(state.search.toLowerCase()));
-            const filtered_folders = state.folders.filter(f => f.name.toLowerCase().includes(state.search.toLowerCase()));
-
-            let cards = "";
-            filtered_folders.forEach(function(folder) {
-                cards += '<div class="card folder" ondblclick="setState({selectedFolder:' + JSON.stringify(folder) + '})" oncontextmenu="showCtx(event,[' +
-                    '{icon:\'↳\',label:\'Open\',action:\'openFolder\',id:' + folder.id + '},' +
-                    '{icon:\'✎\',label:\'Rename\',action:\'renameFolder\',id:' + folder.id + '},' +
-                    '{sep:true},' +
-                    '{icon:\'✕\',label:\'Delete\',action:\'deleteFolder\',id:' + folder.id + ',danger:true}' +
-                    '])">' +
-                    '<div class="card-icon" style="color:var(--accent)">⬡</div>' +
-                    '<div class="card-name">' + esc(folder.name) + '</div>' +
-                    '<div class="card-meta">Folder</div>' +
-                    '</div>';
-            });
-
-            filtered_files.forEach(function(file) {
-                cards += '<div class="card" ondblclick="apiDownload(\'/files/' + file.id + '/download\',\'' + esc(file.filename) + '\')" oncontextmenu="showCtx(event,[' +
-                    '{icon:\'↓\',label:\'Download\',action:\'downloadFile\',id:' + file.id + '},' +
-                    '{icon:\'⏱\',label:\'Versions\',action:\'openVersions\',id:' + file.id + '},' +
-                    '{icon:\'✎\',label:\'Rename\',action:\'renameFile\',id:' + file.id + '},' +
-                    '{sep:true},' +
-                    '{icon:\'✕\',label:\'Delete\',action:\'deleteFile\',id:' + file.id + ',danger:true}' +
-                    '])">' +
-                    '<div class="card-icon">' + fileIcon(file.filename) + '</div>' +
-                    '<div class="card-name">' + esc(file.filename) + '</div>' +
-                    '<div class="card-meta">' + fmtBytes(file.size_bytes) + '<span class="tag tag-blue">v' + file.current_version + '</span></div>' +
-                    '<div class="card-date">' + fmtDate(file.updated_at) + '</div>' +
-                    '</div>';
-            });
-
-            if (!cards) {
-                cards = '<div class="empty-state"><div class="empty-icon">⬡</div><p>Empty ' + bc + '</p><p class="empty-hint">Upload files or create a folder</p></div>';
-            }
-
-            const content = state.loading ?
-                '<div class="spinner-wrap"><div class="spinner"></div></div>' :
-                '<div class="file-grid">' + cards + '</div>';
-
-            return '<div id="app" style="display:flex;flex-direction:column;height:100vh;overflow:hidden">' +
-                // topbar
-                '<div class="topbar">' +
-                '<div class="topbar-left">' +
-                '<span class="topbar-logo">⬡ CLOTE</span>' +
-                '<span class="topbar-sep">/</span>' +
-                '<span class="topbar-bc">' + bc + '</span>' +
-                '</div>' +
-                '<div class="topbar-right">' +
-                '<span class="topbar-user">@' + esc(state.username) + '</span>' +
-                '<button class="btn btn-ghost" onclick="logout()">Sign out</button>' +
-                '</div>' +
-                '</div>' +
-                '<div class="dash-body">' +
-                // sidebar
-                renderSidebar() +
-                // main
-                '<div class="main-area">' +
-                '<div class="toolbar">' +
-                '<div class="toolbar-left"><input class="search" placeholder="Search…" value="' + esc(state.search) + '" oninput="setState({search:this.value})" /></div>' +
-                '<div class="toolbar-right">' +
-                '<button class="btn btn-ghost" onclick="setState({showNewFolder:!state.showNewFolder})">+ Folder</button>' +
-                '<label class="btn btn-primary" style="cursor:pointer">↑ Upload<input type="file" multiple style="display:none" onchange="handleUpload(event)" /></label>' +
-                '</div>' +
-                '</div>' +
-                (state.showNewFolder ? '<div class="new-folder-bar"><input id="new-folder-inp" placeholder="Folder name" /><button class="btn btn-primary" onclick="handleNewFolder()">Create</button><button class="btn btn-ghost" onclick="setState({showNewFolder:false})">Cancel</button></div>' : '') +
-                content +
-                '</div>' +
-                '</div>' +
-                renderCtx() +
-                renderVersionModal() +
-                renderRenameModal() +
-                '</div>';
-        }
-
-        function renderSidebar() {
-            const rootActive = !state.selectedFolder;
-            let tree = '';
-            // We'll use a simple flat list from loadContents root folders
-            // For sidebar we fetch separately via a global var
-            return '<div class="sidebar">' +
-                '<div class="sb-header"><span class="sb-title">EXPLORER</span><button class="sb-add" onclick="setState({showNewFolder:true})">+</button></div>' +
-                '<div class="folder-tree">' +
-                '<div class="f-row' + (rootActive ? " active" : "") + '" onclick="setState({selectedFolder:null})" style="padding-left:12px">' +
-                '<span class="f-icon">⌂</span><span class="f-name">Root</span>' +
-                '</div>' +
-                renderSidebarFolders() +
-                '</div>' +
-                '</div>';
-        }
-
-        // Keep a global sidebar folders cache
-        let sidebarFolders = [];
-        async function loadSidebarFolders() {
-            try {
-                sidebarFolders = await api("GET", "/folders/");
-                render();
-            } catch (e) {}
-        }
-
-        function renderSidebarFolders() {
-            return sidebarFolders.map(function(f) {
-                const active = state.selectedFolder && state.selectedFolder.id === f.id;
-                return '<div class="f-row' + (active ? " active" : "") + '" onclick="setState({selectedFolder:' + JSON.stringify(f) + '})" style="padding-left:20px">' +
-                    '<span class="f-icon">⬡</span><span class="f-name">' + esc(f.name) + '</span>' +
-                    '</div>';
-            }).join("");
-        }
-
-        function renderCtx() {
-            if (!state.ctx) return "";
-            const items = state.ctx.items.map(function(item) {
-                if (item.sep) return '<div class="ctx-div"></div>';
-                return '<div class="ctx-item' + (item.danger ? " danger" : "") + '" onclick="handleCtxAction(\'' + item.action + '\',' + item.id + ')">' +
-                    '<span>' + item.icon + '</span><span>' + esc(item.label) + '</span>' +
-                    '</div>';
-            }).join("");
-            return '<div class="ctx" style="left:' + state.ctx.x + 'px;top:' + state.ctx.y + 'px">' + items + '</div>';
-        }
-
-        function handleCtxAction(action, id) {
-            const file = state.files.find(function(f) {
-                return f.id === id;
-            });
-            const folder = state.folders.find(function(f) {
-                return f.id === id;
-            });
-            if (action === "downloadFile") apiDownload("/files/" + id + "/download", file.filename).catch(function(e) {
-                toast(e.message, "error");
-            });
-            if (action === "openVersions") openVersions(file);
-            if (action === "renameFile") showRename({
-                type: "file",
-                item: file
-            });
-            if (action === "deleteFile") deleteFile(file);
-            if (action === "openFolder") setState({
-                selectedFolder: folder
-            });
-            if (action === "renameFolder") showRename({
-                type: "folder",
-                item: folder
-            });
-            if (action === "deleteFolder") deleteFolder(folder);
-        }
-
-        function renderVersionModal() {
-            if (!state.versionFile) return "";
-            const f = state.versionFile;
-            let list = "";
-            if (state.versionLoading) {
-                list = '<div class="ver-empty">Loading…</div>';
-            } else if (state.versionData) {
-                const d = state.versionData;
-                if (!d.versions || d.versions.length === 0) {
-                    list = '<div class="ver-empty">No versions found</div>';
-                } else {
-                    d.versions.forEach(function(v) {
-                        const isCur = v.version_num === d.current_version;
-                        list += '<div class="ver-item' + (isCur ? " current" : "") + '">' +
-                            '<div class="ver-left">' +
-                            '<span class="tag ' + (isCur ? "tag-green" : "tag-blue") + '">v' + v.version_num + (isCur ? " ●" : "") + '</span>' +
-                            '<div class="ver-meta">' +
-                            fmtBytes(v.size_bytes) + ' · ' + fmtDate(v.created_at) +
-                            (v.note ? ' · <span class="ver-note">"' + esc(v.note) + '"</span>' : '') +
-                            '</div>' +
-                            '</div>' +
-                            '<div class="ver-actions">' +
-                            '<button class="btn btn-ghost" onclick="downloadVersion(' + f.id + ',' + v.version_num + ',\'' + esc(f.filename) + '\')">↓</button>' +
-                            (!isCur ? '<button class="btn btn-danger" onclick="deleteVersion(' + f.id + ',' + v.version_num + ')">✕</button>' : '') +
-                            '</div>' +
-                            '</div>';
-                    });
-                }
-            }
-
-            return '<div class="backdrop" onclick="if(event.target===this)setState({versionFile:null,versionData:null})">' +
-                '<div class="modal ver-modal">' +
-                '<div class="modal-header">' +
-                '<div><div class="modal-title">Version History</div><div class="ver-filename">' + esc(f.filename) + '</div></div>' +
-                '<button class="btn btn-ghost" onclick="setState({versionFile:null,versionData:null})">✕</button>' +
-                '</div>' +
-                '<form class="ver-upload" onsubmit="handleVersionUpload(event)">' +
-                '<div class="ver-upload-row">' +
-                '<label class="file-input-label btn btn-ghost" style="cursor:pointer" id="ver-file-label">Choose file<input id="ver-file-input" type="file" style="display:none" onchange="document.getElementById(\'ver-file-label\').textContent=this.files[0]?this.files[0].name:\'Choose file\'" /></label>' +
-                '<input id="ver-note-input" placeholder="Note (optional)" style="flex:1;min-width:100px" />' +
-                '<button class="btn btn-primary" type="submit">Push version</button>' +
-                '</div>' +
-                '</form>' +
-                '<div class="ver-list">' + list + '</div>' +
-                '</div>' +
-                '</div>';
-        }
-
-        function renderRenameModal() {
-            if (!state.renameTarget) return "";
-            const current = state.renameTarget.type === "file" ? state.renameTarget.item.filename : state.renameTarget.item.name;
-            return '<div class="backdrop" onclick="if(event.target===this)setState({renameTarget:null})">' +
-                '<div class="modal">' +
-                '<div class="modal-title">Rename</div>' +
-                '<input id="rename-input" value="' + esc(current) + '" onkeydown="if(event.key===\'Enter\')handleRenameConfirm()" />' +
-                '<div class="modal-actions">' +
-                '<button class="btn btn-ghost" onclick="setState({renameTarget:null})">Cancel</button>' +
-                '<button class="btn btn-primary" onclick="handleRenameConfirm()">Rename</button>' +
-                '</div>' +
-                '</div>' +
-                '</div>';
-        }
-
-        function handleNewFolder() {
-            const inp = document.getElementById("new-folder-inp");
-            if (!inp || !inp.value.trim()) return;
-            const name = inp.value.trim();
-            setState({
-                showNewFolder: false,
-                newFolderName: ""
-            });
-            createFolder(name, state.selectedFolder ? state.selectedFolder.id : null);
-            loadSidebarFolders();
-        }
-
-        function bindEvents() {}
-
-        // ── INIT ──────────────────────────────────────────────────────────────────────
-        render();
-        if (state.token) {
-            loadContents();
-            loadSidebarFolders();
-        }
-    </script>
+// ═══════════════════════════════════
+// INIT
+// ═══════════════════════════════════
+if(token)startApp();
+</script>
 </body>
-
 </html>

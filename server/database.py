@@ -26,6 +26,7 @@ CREATE_USERS_TABLE = """
 CREATE TABLE IF NOT EXISTS users (
     id            INTEGER PRIMARY KEY AUTOINCREMENT,
     username      TEXT    NOT NULL UNIQUE,
+    email         TEXT    DEFAULT NULL,
     password_hash TEXT    NOT NULL,
     created_at    TEXT    NOT NULL DEFAULT (datetime('now'))
 );
@@ -40,6 +41,8 @@ CREATE TABLE IF NOT EXISTS folders (
     name          TEXT    NOT NULL,
     created_at    TEXT    NOT NULL DEFAULT (datetime('now')),
     updated_at    TEXT    NOT NULL DEFAULT (datetime('now')),
+    deleted_at    TEXT    DEFAULT NULL,
+    deleted_by    INTEGER REFERENCES users(id),
     UNIQUE(owner_id, parent_id, name, project_id)
 );
 """
@@ -56,7 +59,9 @@ CREATE TABLE IF NOT EXISTS files (
     mime_type       TEXT,
     current_version INTEGER NOT NULL DEFAULT 1,
     created_at      TEXT    NOT NULL DEFAULT (datetime('now')),
-    updated_at      TEXT    NOT NULL DEFAULT (datetime('now'))
+    updated_at      TEXT    NOT NULL DEFAULT (datetime('now')),
+    deleted_at      TEXT    DEFAULT NULL,
+    deleted_by      INTEGER REFERENCES users(id)
 );
 """
 
@@ -96,6 +101,47 @@ CREATE TABLE IF NOT EXISTS project_members (
 );
 """
 
+CREATE_AUDIT_LOG_TABLE = """
+CREATE TABLE IF NOT EXISTS audit_log (
+    id          INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id     INTEGER REFERENCES users(id) ON DELETE SET NULL,
+    username    TEXT,
+    action      TEXT    NOT NULL,
+    target_type TEXT,
+    target_id   INTEGER,
+    target_name TEXT,
+    project_id  INTEGER REFERENCES projects(id) ON DELETE SET NULL,
+    detail      TEXT,
+    ip_address  TEXT,
+    created_at  TEXT    NOT NULL DEFAULT (datetime('now'))
+);
+"""
+
+CREATE_SHARED_LINKS_TABLE = """
+CREATE TABLE IF NOT EXISTS shared_links (
+    id          INTEGER PRIMARY KEY AUTOINCREMENT,
+    token       TEXT    NOT NULL UNIQUE,
+    file_id     INTEGER NOT NULL REFERENCES files(id) ON DELETE CASCADE,
+    created_by  INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    expires_at  TEXT    DEFAULT NULL,
+    max_uses    INTEGER DEFAULT NULL,
+    use_count   INTEGER NOT NULL DEFAULT 0,
+    created_at  TEXT    NOT NULL DEFAULT (datetime('now'))
+);
+"""
+
+CREATE_OTPS_TABLE = """
+CREATE TABLE IF NOT EXISTS otps (
+    id          INTEGER PRIMARY KEY AUTOINCREMENT,
+    email       TEXT    NOT NULL,
+    otp_hash    TEXT    NOT NULL,
+    purpose     TEXT    NOT NULL CHECK(purpose IN ('register', 'reset')),
+    expires_at  TEXT    NOT NULL,
+    used        INTEGER NOT NULL DEFAULT 0,
+    created_at  TEXT    NOT NULL DEFAULT (datetime('now'))
+);
+"""
+
 
 # ─────────────────────────────────────────────
 # Init
@@ -118,17 +164,33 @@ def init_db() -> None:
             CREATE_PROJECT_MEMBERS_TABLE +
             CREATE_FOLDERS_TABLE +
             CREATE_FILES_TABLE +
-            CREATE_VERSIONS_TABLE
+            CREATE_VERSIONS_TABLE +
+            CREATE_AUDIT_LOG_TABLE +
+            CREATE_SHARED_LINKS_TABLE +
+            CREATE_OTPS_TABLE
         )
 
         # ── Safe migrations for existing databases ──
-        # Add project_id to folders if missing
+
+        # project_id on folders + files
         _add_column_if_missing(cursor, "folders", "project_id",
                                "INTEGER REFERENCES projects(id) ON DELETE CASCADE")
-
-        # Add project_id to files if missing
         _add_column_if_missing(cursor, "files", "project_id",
                                "INTEGER REFERENCES projects(id) ON DELETE CASCADE")
+
+        # Trash columns
+        _add_column_if_missing(cursor, "files",   "deleted_at", "TEXT DEFAULT NULL")
+        _add_column_if_missing(cursor, "files",   "deleted_by", "INTEGER REFERENCES users(id)")
+        _add_column_if_missing(cursor, "folders", "deleted_at", "TEXT DEFAULT NULL")
+        _add_column_if_missing(cursor, "folders", "deleted_by", "INTEGER REFERENCES users(id)")
+
+        # Email on users (needed for OTP)
+        _add_column_if_missing(cursor, "users", "email", "TEXT DEFAULT NULL")
+# SQLite can't ADD COLUMN with UNIQUE — create the index separately
+        try:
+            cursor.execute("CREATE UNIQUE INDEX IF NOT EXISTS idx_users_email ON users(email)")
+        except Exception:
+            pass
 
         conn.commit()
         print("[CLOTE] Database initialized.")

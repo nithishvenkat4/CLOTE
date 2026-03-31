@@ -53,11 +53,70 @@ def _check_file_access(conn, file_row, user, require_write: bool = False):
         else:
             get_member_role(conn, file_row["project_id"], user["id"])
 
+@router.get("/search")
+async def search_files(
+    q: str,
+    project_id: Optional[int] = None,
+    current_user: dict = Depends(get_current_user)
+):
+    if not q or len(q.strip()) < 1:
+        return {"files": [], "folders": []}
 
+    username = current_user["username"]
+    pattern = f"%{q.strip()}%"
+
+    with get_db() as db:
+        # resolve username -> user id
+        user = db.execute(
+            "SELECT id FROM users WHERE username=?", (username,)
+        ).fetchone()
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+        user_id = user["id"]
+
+        if project_id is not None:
+            member = db.execute(
+                "SELECT role FROM project_members WHERE project_id=? AND username=?",
+                (project_id, username)
+            ).fetchone()
+            if not member:
+                raise HTTPException(status_code=403, detail="Not a project member")
+
+            files = db.execute(
+                """SELECT id, filename, size_bytes, mime_type, owner_id, created_at, current_version
+                   FROM files
+                   WHERE project_id=? AND filename LIKE ?""",
+                (project_id, pattern)
+            ).fetchall()
+
+            folders = db.execute(
+                """SELECT id, name, created_at
+                   FROM folders
+                   WHERE project_id=? AND name LIKE ?""",
+                (project_id, pattern)
+            ).fetchall()
+        else:
+            files = db.execute(
+                """SELECT id, filename, size_bytes, mime_type, owner_id, created_at, current_version
+                   FROM files
+                   WHERE owner_id=? AND project_id IS NULL AND filename LIKE ?""",
+                (user_id, pattern)
+            ).fetchall()
+
+            folders = db.execute(
+                """SELECT id, name, created_at
+                   FROM folders
+                   WHERE project_id IS NULL AND name LIKE ?""",
+                (pattern,)
+            ).fetchall()
+
+    return {
+        "files": [dict(f) for f in files],
+        "folders": [dict(f) for f in folders]
+    }
 # ─────────────────────────────────────────────
 # Upload new file
 # ─────────────────────────────────────────────
-
 @router.post("/upload", status_code=201)
 async def upload_file(
     file: UploadFile = File(...),
@@ -428,30 +487,31 @@ def move_file(file_id: int, body: MoveBody, user=Depends(get_current_user)):
 # Delete file
 # ─────────────────────────────────────────────
 
-@router.delete("/{file_id}", status_code=204)
+# ─────────────────────────────────────────────
+# Delete file (soft delete → trash)
+# ─────────────────────────────────────────────
+
+@router.delete("/{file_id}", status_code=200)
 def delete_file(file_id: int, user=Depends(get_current_user)):
     conn = get_db()
     try:
-        row = conn.execute("SELECT * FROM files WHERE id = ?", (file_id,)).fetchone()
+        row = conn.execute(
+            "SELECT * FROM files WHERE id=? AND deleted_at IS NULL", (file_id,)
+        ).fetchone()
         if not row:
             raise HTTPException(status_code=404, detail="File not found")
         _check_file_access(conn, row, user, require_write=True)
 
-        # Delete all version files from disk
-        versions = conn.execute(
-            "SELECT stored_name FROM versions WHERE file_id = ?", (file_id,)
-        ).fetchall()
-        for v in versions:
-            p = Path(VERSIONS_DIR) / v["stored_name"]
-            if p.exists():
-                p.unlink()
+        uid = conn.execute(
+            "SELECT id FROM users WHERE username=?", (user["username"],)
+        ).fetchone()["id"]
 
-        # Delete current file from disk
-        p = Path(FILES_DIR) / row["stored_name"]
-        if p.exists():
-            p.unlink()
-
-        conn.execute("DELETE FROM files WHERE id = ?", (file_id,))
+        conn.execute(
+            "UPDATE files SET deleted_at=datetime('now'), deleted_by=? WHERE id=?",
+            (uid, file_id)
+        )
         conn.commit()
     finally:
         conn.close()
+
+    return {"message": "File moved to trash"}

@@ -136,17 +136,18 @@ def get_folder(folder_id: int, user=Depends(get_current_user)):
         _check_folder_access(conn, folder, user, require_write=False)
 
         children = conn.execute(
-            "SELECT * FROM folders WHERE parent_id = ? ORDER BY name",
+            "SELECT * FROM folders WHERE parent_id = ? AND deleted_at IS NULL ORDER BY name",
             (folder_id,)
         ).fetchall()
 
         files = conn.execute(
-            "SELECT * FROM files WHERE folder_id = ? ORDER BY filename",
+            "SELECT * FROM files WHERE folder_id = ? AND deleted_at IS NULL ORDER BY filename",
             (folder_id,)
         ).fetchall()
 
         return {
             **dict(folder),
+            "subfolders": [dict(c) for c in children],   # keep both keys for safety
             "children": [dict(c) for c in children],
             "files": [dict(f) for f in files],
         }

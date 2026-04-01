@@ -181,6 +181,49 @@ async def permanent_delete_file(file_id: int, current_user: dict = Depends(get_c
     return {"message": "File permanently deleted"}
 
 
+# ── Permanently delete a folder ────────────────────────────────────────────
+
+@router.delete("/folders/{folder_id}/permanent")
+async def permanent_delete_folder(folder_id: int, current_user: dict = Depends(get_current_user)):
+    conn = get_db()
+    try:
+        user = conn.execute("SELECT id FROM users WHERE username=?", (current_user["username"],)).fetchone()
+        uid = user["id"]
+
+        folder = conn.execute(
+            "SELECT * FROM folders WHERE id=? AND owner_id=? AND deleted_at IS NOT NULL",
+            (folder_id, uid)
+        ).fetchone()
+        if not folder:
+            raise HTTPException(status_code=404, detail="Folder not in trash")
+
+        # Delete all file versions from disk recursively
+        _permanent_delete_folder_tree(conn, folder_id)
+
+        conn.execute("DELETE FROM folders WHERE id=?", (folder_id,))
+        conn.commit()
+    finally:
+        conn.close()
+
+    return {"message": "Folder permanently deleted"}
+
+
+def _permanent_delete_folder_tree(conn, folder_id: int):
+    from pathlib import Path
+    from config import FILES_DIR, VERSIONS_DIR
+    files = conn.execute("SELECT id, stored_name FROM files WHERE folder_id=?", (folder_id,)).fetchall()
+    for f in files:
+        versions = conn.execute("SELECT stored_name FROM versions WHERE file_id=?", (f["id"],)).fetchall()
+        for v in versions:
+            p = Path(VERSIONS_DIR) / v["stored_name"]
+            if p.exists(): p.unlink()
+        p = Path(FILES_DIR) / f["stored_name"]
+        if p.exists(): p.unlink()
+    children = conn.execute("SELECT id FROM folders WHERE parent_id=?", (folder_id,)).fetchall()
+    for child in children:
+        _permanent_delete_folder_tree(conn, child["id"])
+
+
 # ── Empty trash (all items) ─────────────────────────────────────────
 
 @router.delete("/empty")

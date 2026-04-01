@@ -62,58 +62,55 @@ async def search_files(
     if not q or len(q.strip()) < 1:
         return {"files": [], "folders": []}
 
-    username = current_user["username"]
+    user_id = current_user["id"]
     pattern = f"%{q.strip()}%"
 
-    with get_db() as db:
-        # resolve username -> user id
-        user = db.execute(
-            "SELECT id FROM users WHERE username=?", (username,)
-        ).fetchone()
-        if not user:
-            raise HTTPException(status_code=404, detail="User not found")
-        user_id = user["id"]
-
+    conn = get_db()
+    try:
         if project_id is not None:
-            member = db.execute(
-                "SELECT role FROM project_members WHERE project_id=? AND username=?",
-                (project_id, username)
+            # Verify membership using user_id (not username)
+            member = conn.execute(
+                "SELECT role FROM project_members WHERE project_id=? AND user_id=?",
+                (project_id, user_id)
             ).fetchone()
             if not member:
                 raise HTTPException(status_code=403, detail="Not a project member")
 
-            files = db.execute(
+            files = conn.execute(
                 """SELECT id, filename, size_bytes, mime_type, owner_id, created_at, current_version
                    FROM files
-                   WHERE project_id=? AND filename LIKE ?""",
+                   WHERE project_id=? AND deleted_at IS NULL AND filename LIKE ?""",
                 (project_id, pattern)
             ).fetchall()
 
-            folders = db.execute(
+            folders = conn.execute(
                 """SELECT id, name, created_at
                    FROM folders
-                   WHERE project_id=? AND name LIKE ?""",
+                   WHERE project_id=? AND deleted_at IS NULL AND name LIKE ?""",
                 (project_id, pattern)
             ).fetchall()
         else:
-            files = db.execute(
+            files = conn.execute(
                 """SELECT id, filename, size_bytes, mime_type, owner_id, created_at, current_version
                    FROM files
-                   WHERE owner_id=? AND project_id IS NULL AND filename LIKE ?""",
+                   WHERE owner_id=? AND project_id IS NULL AND deleted_at IS NULL AND filename LIKE ?""",
                 (user_id, pattern)
             ).fetchall()
 
-            folders = db.execute(
+            # Fix: filter by owner_id to avoid leaking other users' folders
+            folders = conn.execute(
                 """SELECT id, name, created_at
                    FROM folders
-                   WHERE project_id IS NULL AND name LIKE ?""",
-                (pattern,)
+                   WHERE owner_id=? AND project_id IS NULL AND deleted_at IS NULL AND name LIKE ?""",
+                (user_id, pattern)
             ).fetchall()
 
-    return {
-        "files": [dict(f) for f in files],
-        "folders": [dict(f) for f in folders]
-    }
+        return {
+            "files": [dict(f) for f in files],
+            "folders": [dict(f) for f in folders]
+        }
+    finally:
+        conn.close()
 # ─────────────────────────────────────────────
 # Upload new file
 # ─────────────────────────────────────────────
@@ -183,12 +180,12 @@ def list_files(project_id: Optional[int] = Query(None), user=Depends(get_current
         if project_id is not None:
             get_member_role(conn, project_id, user["id"])
             rows = conn.execute(
-                "SELECT * FROM files WHERE project_id = ? ORDER BY filename",
+                "SELECT * FROM files WHERE project_id = ? AND deleted_at IS NULL ORDER BY filename",
                 (project_id,)
             ).fetchall()
         else:
             rows = conn.execute(
-                "SELECT * FROM files WHERE owner_id = ? AND project_id IS NULL ORDER BY filename",
+                "SELECT * FROM files WHERE owner_id = ? AND project_id IS NULL AND deleted_at IS NULL ORDER BY filename",
                 (user["id"],)
             ).fetchall()
 

@@ -120,7 +120,7 @@ def list_projects(user=Depends(get_current_user)):
     try:
         rows = conn.execute(
             """SELECT p.id, p.name, p.description, p.owner_id,
-                      pm.role, p.created_at, p.updated_at
+                      pm.role, pm.role as my_role, p.created_at, p.updated_at
                FROM projects p
                JOIN project_members pm ON pm.project_id = p.id
                WHERE pm.user_id = ?
@@ -128,7 +128,7 @@ def list_projects(user=Depends(get_current_user)):
             (user["id"],)
         ).fetchall()
 
-        return [dict(r) for r in rows]
+        return {"projects": [dict(r) for r in rows]}
     finally:
         conn.close()
 

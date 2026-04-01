@@ -771,11 +771,10 @@ let searchTimer  = null;
 function switchTab(tab){
   ['login','register','forgot'].forEach(t=>{
     document.getElementById('form-'+t).style.display = t===tab?'flex':'none';
-    document.getElementById('tab-'+(t==='register'?'reg':t==='forgot'?'forgot':t)).classList.toggle('active',t===tab);
   });
-  document.getElementById('tab-reg').classList.toggle('active',tab==='register');
-  document.getElementById('tab-forgot').classList.toggle('active',tab==='forgot');
-  document.getElementById('tab-login').classList.toggle('active',tab==='login');
+  document.getElementById('tab-login').classList.toggle('active', tab==='login');
+  document.getElementById('tab-reg').classList.toggle('active', tab==='register');
+  document.getElementById('tab-forgot').classList.toggle('active', tab==='forgot');
 }
 
 async function doLogin(){
@@ -957,7 +956,8 @@ async function loadView(){
     if(currentFolderId){
       fRes=await apiFetch(`/folders/${currentFolderId}`);
       const d=await fRes.json();
-      currentFolders=d.subfolders||[];currentFiles=d.files||[];
+      // Server returns both 'children' and 'subfolders' keys after fix
+      currentFolders=d.children||d.subfolders||[];currentFiles=d.files||[];
     }else if(mode==='project'){
       const[ff,fi]=await Promise.all([
         apiFetch(`/folders/?project_id=${currentProjectId}`),
@@ -1231,7 +1231,30 @@ async function doCreateFolder(){
   }catch(e){toast('Error','error');}
 }
 
-function downloadFile(id){window.open(`${API}/files/${id}/download?token=${token}`);}
+async function downloadFile(id){
+  try{
+    const r=await apiFetch(`/files/${id}/download`);
+    if(!r.ok){toast('Download failed','error');return;}
+    const blob=await r.blob();
+    const cd=r.headers.get('content-disposition')||'';
+    const match=cd.match(/filename="?([^";\n]+)"?/);
+    const filename=match?match[1]:`file_${id}`;
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');a.href=url;a.download=filename;a.click();
+    setTimeout(()=>URL.revokeObjectURL(url),1000);
+  }catch(e){toast('Download error','error');}
+}
+
+async function downloadVersion(fileId,vnum){
+  try{
+    const r=await apiFetch(`/files/${fileId}/versions/${vnum}/download`);
+    if(!r.ok){toast('Download failed','error');return;}
+    const blob=await r.blob();
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');a.href=url;a.download=`v${vnum}_file`;a.click();
+    setTimeout(()=>URL.revokeObjectURL(url),1000);
+  }catch(e){toast('Download error','error');}
+}
 
 async function openVersions(fileId,filename){
   verFileId=fileId;
@@ -1252,8 +1275,6 @@ async function openVersions(fileId,filename){
     openModal('modal-versions');
   }catch(e){toast('Failed to load versions','error');}
 }
-
-function downloadVersion(fileId,vnum){window.open(`${API}/files/${fileId}/versions/${vnum}/download?token=${token}`);}
 
 async function doUploadVersion(){
   const inp=document.getElementById('ver-input');
@@ -1435,7 +1456,7 @@ async function openTrashModal(){
       <div class="trash-item-name">${escHtml(item.filename||item.name)}</div>
       <div class="trash-item-meta">${fmtDate(item.deleted_at)}</div>
       <button class="tb-btn" onclick="restoreItem('${item._type}',${item.id})">Restore</button>
-      <button class="btn-danger" style="padding:6px 12px;font-size:11px;border-radius:var(--radius-sm);cursor:pointer;border:none" onclick="permanentDelete(${item.id})">Delete</button>
+      <button class="btn-danger" style="padding:6px 12px;font-size:11px;border-radius:var(--radius-sm);cursor:pointer;border:none" onclick="permanentDelete('${item._type}',${item.id})">Delete</button>
     </div>`).join('');
   }catch(e){document.getElementById('trash-body').innerHTML='<p style="color:var(--danger);font-family:var(--mono);font-size:12px">Failed to load</p>';}
 }
@@ -1449,12 +1470,15 @@ async function restoreItem(type,id){
   }catch(e){toast('Error','error');}
 }
 
-async function permanentDelete(fileId){
-  if(!confirm('Permanently delete this file? This cannot be undone.'))return;
+async function permanentDelete(type,id){
+  if(!confirm('Permanently delete this item? This cannot be undone.'))return;
   try{
-    const r=await apiFetch(`/trash/files/${fileId}/permanent`,{method:'DELETE'});
+    const url=type==='folder'
+      ?`/trash/folders/${id}/permanent`
+      :`/trash/files/${id}/permanent`;
+    const r=await apiFetch(url,{method:'DELETE'});
     if(!r.ok){const d=await r.json();toast(d.detail||'Failed','error');return;}
-    toast('Permanently deleted','success');openTrashModal();
+    toast('Permanently deleted','success');openTrashModal();loadView();
   }catch(e){toast('Error','error');}
 }
 
@@ -1507,7 +1531,8 @@ async function fetchAllProjects(){
   try{
     const r=await apiFetch('/projects/');
     const d=await r.json();
-    allProjects=d.projects||[];
+    // Server returns {projects:[...]} after fix
+    allProjects=Array.isArray(d)?d:(d.projects||[]);
     renderProjectsSidebar();
   }catch(e){}
 }
@@ -1516,7 +1541,8 @@ async function fetchAllPersonalFolders(){
   try{
     const r=await apiFetch('/folders/');
     const d=await r.json();
-    allPersonalFolders=d.folders||[];
+    // /folders/ returns a bare array
+    allPersonalFolders=Array.isArray(d)?d:(d.folders||[]);
     renderPersonalTree();
   }catch(e){}
 }

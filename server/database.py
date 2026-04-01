@@ -11,11 +11,35 @@ from config import DATABASE_PATH
 # Connection Helper
 # ─────────────────────────────────────────────
 
-def get_db() -> sqlite3.Connection:
+class _DBConn:
+    """
+    Thin wrapper around sqlite3.Connection that supports both patterns:
+      conn = get_db(); conn.execute(...); conn.close()
+      with get_db() as db: db.execute(...)
+    sqlite3.Connection doesn't allow setting __enter__/__exit__ directly,
+    so we wrap it instead.
+    """
+    def __init__(self, conn: sqlite3.Connection):
+        object.__setattr__(self, '_conn', conn)
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *args):
+        object.__getattribute__(self, '_conn').close()
+
+    def __getattr__(self, name):
+        return getattr(object.__getattribute__(self, '_conn'), name)
+
+    def __setattr__(self, name, value):
+        setattr(object.__getattribute__(self, '_conn'), name, value)
+
+
+def get_db() -> _DBConn:
     conn = sqlite3.connect(str(DATABASE_PATH))
     conn.row_factory = sqlite3.Row
     conn.execute("PRAGMA foreign_keys = ON")
-    return conn
+    return _DBConn(conn)
 
 
 # ─────────────────────────────────────────────
@@ -186,7 +210,6 @@ def init_db() -> None:
 
         # Email on users (needed for OTP)
         _add_column_if_missing(cursor, "users", "email", "TEXT DEFAULT NULL")
-# SQLite can't ADD COLUMN with UNIQUE — create the index separately
         try:
             cursor.execute("CREATE UNIQUE INDEX IF NOT EXISTS idx_users_email ON users(email)")
         except Exception:

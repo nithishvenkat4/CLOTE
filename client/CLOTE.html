@@ -302,18 +302,29 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--s
         <input type="password" id="login-pass" placeholder="••••••••" autocomplete="current-password"
           onkeydown="if(event.key==='Enter')doLogin()"/></div>
       <button class="btn-primary" onclick="doLogin()">Login</button>
+      <div style="text-align:right;margin-top:4px">
+        <span onclick="switchTab('forgot')" style="font-size:11px;color:var(--text3);font-family:var(--mono);cursor:pointer;text-decoration:underline">Forgot password?</span>
+      </div>
       <div class="auth-msg" id="login-msg"></div>
     </div>
 
     <!-- Register -->
     <div id="form-register" class="auth-form" style="display:none">
-      <div class="form-group"><label>Username</label>
-        <input type="text" id="reg-user" placeholder="choose a username"/></div>
-      <div class="form-group"><label>Email (optional — for password reset)</label>
-        <input type="email" id="reg-email" placeholder="you@example.com"/></div>
-      <div class="form-group"><label>Password</label>
-        <input type="password" id="reg-pass" placeholder="••••••••"/></div>
-      <button class="btn-primary" onclick="doRegister()">Create Account</button>
+      <div id="reg-step1" style="display:flex;flex-direction:column;gap:14px">
+        <div class="form-group"><label>Username</label>
+          <input type="text" id="reg-user" placeholder="choose a username"/></div>
+        <div class="form-group"><label>Email <span style="color:var(--danger)">*</span> (required for OTP)</label>
+          <input type="email" id="reg-email" placeholder="you@example.com"/></div>
+        <div class="form-group"><label>Password</label>
+          <input type="password" id="reg-pass" placeholder="••••••••"/></div>
+        <button class="btn-primary" onclick="doRegisterSendOTP()">Send OTP & Continue</button>
+      </div>
+      <div id="reg-step2" style="display:none;flex-direction:column;gap:14px">
+        <div class="form-group"><label>OTP sent to your email</label>
+          <input type="text" id="reg-otp" placeholder="6-digit code" maxlength="6"/></div>
+        <button class="btn-primary" onclick="doRegister()">Verify & Create Account</button>
+        <button class="btn-ghost" onclick="document.getElementById('reg-step1').style.display='flex';document.getElementById('reg-step2').style.display='none';" style="font-size:12px">← Back</button>
+      </div>
       <div class="auth-msg" id="reg-msg"></div>
     </div>
 
@@ -800,19 +811,42 @@ async function doLogin(){
   }catch(e){setMsg(msg,'Cannot reach server','error');}
 }
 
-async function doRegister(){
+async function doRegisterSendOTP(){
   const user=document.getElementById('reg-user').value.trim();
   const email=document.getElementById('reg-email').value.trim();
   const pass=document.getElementById('reg-pass').value;
   const msg=document.getElementById('reg-msg');
   if(!user||!pass){setMsg(msg,'Fill in username and password','error');return;}
+  if(!email){setMsg(msg,'Email is required for OTP verification','error');return;}
+  try{
+    // Check username availability first
+    const check=await fetch(`${API}/auth/register`,{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({username:user,password:pass,email,dry_run:true})});
+    // Send OTP to email for registration
+    const r=await fetch(`${API}/auth/register-otp`,{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({email})});
+    const d=await r.json();
+    if(!r.ok){setMsg(msg,d.detail||'Failed to send OTP','error');return;}
+    setMsg(msg,'OTP sent to '+email,'ok');
+    document.getElementById('reg-step1').style.display='none';
+    document.getElementById('reg-step2').style.display='flex';
+  }catch(e){setMsg(msg,'Cannot reach server','error');}
+}
+
+async function doRegister(){
+  const user=document.getElementById('reg-user').value.trim();
+  const email=document.getElementById('reg-email').value.trim();
+  const pass=document.getElementById('reg-pass').value;
+  const otp=document.getElementById('reg-otp').value.trim();
+  const msg=document.getElementById('reg-msg');
+  if(!otp){setMsg(msg,'Enter the OTP from your email','error');return;}
   try{
     const r=await fetch(`${API}/auth/register`,{method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({username:user,password:pass,email:email||null})});
+      body:JSON.stringify({username:user,password:pass,email,otp})});
     const d=await r.json();
     if(!r.ok){setMsg(msg,d.detail||'Register failed','error');return;}
     setMsg(msg,'Account created! Please log in.','ok');
-    switchTab('login');document.getElementById('login-user').value=user;
+    setTimeout(()=>{switchTab('login');document.getElementById('login-user').value=user;},1200);
   }catch(e){setMsg(msg,'Cannot reach server','error');}
 }
 
@@ -1161,6 +1195,7 @@ async function bulkMove(){
 // ═══════════════════════════════════
 // CTX MENU
 // ═══════════════════════════════════
+let _ctxJustOpened=false;
 function showCtx(e,type,id,name){
   e.preventDefault();e.stopPropagation();
   ctxTarget={type,id,name};
@@ -1176,9 +1211,14 @@ function showCtx(e,type,id,name){
   const y=Math.min(e.clientY,window.innerHeight-300);
   m.style.left=x+'px';m.style.top=y+'px';
   m.classList.add('open');
+  _ctxJustOpened=true;
+  setTimeout(()=>{_ctxJustOpened=false;},150);
 }
 
-function closeCtx(){document.getElementById('ctx-menu').classList.remove('open');}
+function closeCtx(){
+  if(_ctxJustOpened)return;
+  document.getElementById('ctx-menu').classList.remove('open');
+}
 
 function ctxAction(action){
   closeCtx();
@@ -1503,23 +1543,27 @@ async function openPreview(fileId){
   const body=document.getElementById('preview-body');
   body.innerHTML='<p style="color:var(--text3);font-family:var(--mono)">Loading…</p>';
   document.getElementById('preview-panel').classList.add('open');
-  const url=`${API}/files/${fileId}/preview`;
   const mime=file.mime_type||'';
-  if(mime.startsWith('image/')){
-    body.innerHTML=`<img src="${url}" style="max-width:100%;max-height:80vh;object-fit:contain" onerror="this.parentNode.innerHTML='<p style=color:var(--text3)>Failed to load</p>'"/>`;
-  }else if(mime==='application/pdf'){
-    body.innerHTML=`<iframe src="${url}" style="width:100%;height:80vh;border:none;border-radius:var(--radius);background:#fff"></iframe>`;
-  }else if(mime.startsWith('text/')||mime==='application/json'){
-    try{
-      const r=await apiFetch(`/files/${fileId}/preview`);
+  try{
+    const r=await apiFetch(`/files/${fileId}/preview`);
+    if(!r.ok){body.innerHTML='<p style="color:var(--danger);font-family:var(--mono)">Preview failed: '+r.status+'</p>';return;}
+    if(mime.startsWith('image/')){
+      const blob=await r.blob();
+      const url=URL.createObjectURL(blob);
+      body.innerHTML=`<img src="${url}" style="max-width:100%;max-height:80vh;object-fit:contain;border-radius:var(--radius)" onerror="this.parentNode.innerHTML='<p style=color:var(--text3)>Failed to load</p>'"/>`;
+    }else if(mime==='application/pdf'){
+      const blob=await r.blob();
+      const url=URL.createObjectURL(blob);
+      body.innerHTML=`<iframe src="${url}" style="width:100%;height:80vh;border:none;border-radius:var(--radius);background:#fff"></iframe>`;
+    }else if(mime.startsWith('text/')||mime==='application/json'){
       const txt=await r.text();
       body.innerHTML=`<pre>${escHtml(txt)}</pre>`;
-    }catch(e){body.innerHTML='<p style="color:var(--text3)">Failed to load</p>';}
-  }else{
-    body.innerHTML=`<div class="preview-unsupported">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/></svg>
-      <p>Preview not available</p><small>${mime||'unknown type'}</small></div>`;
-  }
+    }else{
+      body.innerHTML=`<div class="preview-unsupported">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/></svg>
+        <p>Preview not available</p><small>${mime||'unknown type'}</small></div>`;
+    }
+  }catch(e){body.innerHTML='<p style="color:var(--danger);font-family:var(--mono)">Preview error</p>';}
 }
 
 function closePreview(){document.getElementById('preview-panel').classList.remove('open');}
@@ -1618,10 +1662,12 @@ async function doInviteMember(){
   const username=document.getElementById('ps-invite-user').value.trim();
   const role=document.getElementById('ps-invite-role').value;
   if(!username)return;
+  const proj=allProjects.find(p=>p.id===psProjectId);
+  if(!confirm(`Invite "${username}" to project "${proj?.name||''}" as ${role}?`))return;
   try{
     const r=await apiFetch(`/projects/${psProjectId}/members`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username,role})});
     if(!r.ok){const d=await r.json();toast(d.detail||'Failed','error');return;}
-    toast(`${username} invited`,'success');document.getElementById('ps-invite-user').value='';
+    toast(`${username} invited as ${role}`,'success');document.getElementById('ps-invite-user').value='';
     await loadProjectMembers();await fetchAllProjects();
   }catch(e){toast('Error','error');}
 }

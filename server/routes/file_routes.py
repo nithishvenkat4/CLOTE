@@ -207,9 +207,12 @@ def download_file(file_id: int, user=Depends(get_current_user)):
             raise HTTPException(status_code=404, detail="File not found")
         _check_file_access(conn, row, user, require_write=False)
 
-        path = Path(FILES_DIR) / row["stored_name"]
+        path = (Path(FILES_DIR).resolve() / row["stored_name"]).resolve()
         if not path.exists():
-            raise HTTPException(status_code=404, detail="File missing from storage")
+            candidates = list(Path(FILES_DIR).resolve().glob(row["stored_name"].split("_")[0] + "_*"))
+            path = candidates[0] if candidates else None
+            if not path:
+                raise HTTPException(status_code=404, detail="File missing from storage")
 
         return FileResponse(
             path=str(path),
@@ -248,9 +251,15 @@ def preview_file(file_id: int, user=Depends(get_current_user)):
             raise HTTPException(status_code=415,
                                 detail="This file type cannot be previewed inline")
 
-        path = Path(FILES_DIR) / row["stored_name"]
+        # Build absolute path and normalise (handles spaces, unicode on Windows)
+        path = (Path(FILES_DIR).resolve() / row["stored_name"]).resolve()
         if not path.exists():
-            raise HTTPException(status_code=404, detail="File missing from storage")
+            # Try just the UUID prefix in case filename portion was stripped
+            candidates = list(Path(FILES_DIR).resolve().glob(row["stored_name"].split("_")[0] + "_*"))
+            if candidates:
+                path = candidates[0]
+            else:
+                raise HTTPException(status_code=404, detail=f"File missing from storage: {row['stored_name']}")
 
         return FileResponse(
             path=str(path),
@@ -290,7 +299,7 @@ async def upload_new_version(
         dest.write_bytes(content)
 
         # Also overwrite the current file in files/ so download always gets latest
-        current_path = Path(FILES_DIR) / row["stored_name"]
+        current_path = Path(FILES_DIR).resolve() / row["stored_name"]
         current_path.write_bytes(content)
 
         # Insert version record
@@ -370,7 +379,7 @@ def download_version(file_id: int, version_num: int, user=Depends(get_current_us
 
         # Current version lives in FILES_DIR, older ones in VERSIONS_DIR
         if version_num == row["current_version"]:
-            path = Path(FILES_DIR) / row["stored_name"]
+            path = Path(FILES_DIR).resolve() / row["stored_name"]
         else:
             path = Path(VERSIONS_DIR) / ver["stored_name"]
 

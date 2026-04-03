@@ -3,6 +3,7 @@ CLOTE - routes/auth_routes.py
 Registration, login, current-user, OTP, forgot/reset password, storage.
 """
 
+import os
 import random
 import smtplib
 import hashlib
@@ -27,9 +28,11 @@ router = APIRouter(prefix="/auth", tags=["auth"])
 
 SMTP_HOST = "smtp.gmail.com"
 SMTP_PORT = 587
-SMTP_USER = "your_email@gmail.com"       # ← change this
-SMTP_PASS = "your_app_password"          # ← change this (Gmail App Password)
+SMTP_USER = os.getenv("CLOTE_SMTP_USER", "")   # set via env var or update here
+SMTP_PASS = os.getenv("CLOTE_SMTP_PASS", "")   # Gmail App Password
 OTP_EXPIRE_MINUTES = 10
+
+SMTP_CONFIGURED = bool(SMTP_USER and SMTP_PASS and "@" in SMTP_USER)
 
 
 # ─────────────────────────────────────────────
@@ -71,6 +74,8 @@ class RegisterBody(BaseModel):
     username: str
     password: str
     email: Optional[str] = None
+    otp: Optional[str] = None      # required when email is provided
+    dry_run: Optional[bool] = False  # just validate, don't create
 
 
 class ForgotPasswordBody(BaseModel):
@@ -87,6 +92,42 @@ class ResetPasswordBody(BaseModel):
     email: str
     otp: str
     new_password: str
+
+
+# ─────────────────────────────────────────────
+# Send OTP for registration
+# ─────────────────────────────────────────────
+
+class RegisterOTPBody(BaseModel):
+    email: str
+
+@router.post("/register-otp", status_code=200)
+def send_register_otp(body: RegisterOTPBody):
+    """Send OTP to email before account creation."""
+    if not SMTP_CONFIGURED:
+        raise HTTPException(status_code=503, detail="Email service not configured on this server.")
+    conn = get_db()
+    try:
+        existing = conn.execute("SELECT id FROM users WHERE email=?", (body.email,)).fetchone()
+        if existing:
+            raise HTTPException(status_code=409, detail="Email already registered")
+        otp = _generate_otp()
+        conn.execute(
+            "INSERT INTO otps (email, otp_hash, purpose, expires_at) VALUES (?,?,?,?)",
+            (body.email, _hash_otp(otp), "register", _expires())
+        )
+        conn.commit()
+        try:
+            _send_email(
+                body.email,
+                "CLOTE — Email Verification OTP",
+                f"Your registration OTP is: {otp}\n\nExpires in {OTP_EXPIRE_MINUTES} minutes."
+            )
+        except Exception:
+            raise HTTPException(status_code=500, detail="Failed to send email. Check SMTP config.")
+        return {"detail": "OTP sent to your email"}
+    finally:
+        conn.close()
 
 
 # ─────────────────────────────────────────────
@@ -108,9 +149,29 @@ def register(body: RegisterBody):
         if existing:
             raise HTTPException(status_code=409, detail="Username already taken")
 
+        # If email provided, OTP must be valid
+        if body.email and not body.dry_run:
+            if not body.otp:
+                raise HTTPException(status_code=400, detail="OTP is required when email is provided")
+            record = conn.execute(
+                """SELECT * FROM otps WHERE email=? AND purpose='register' AND used=0
+                   ORDER BY created_at DESC LIMIT 1""",
+                (body.email,)
+            ).fetchone()
+            if not record:
+                raise HTTPException(status_code=400, detail="Invalid or expired OTP — request a new one")
+            if datetime.utcnow() > datetime.strptime(record["expires_at"], "%Y-%m-%d %H:%M:%S"):
+                raise HTTPException(status_code=400, detail="OTP expired — request a new one")
+            if record["otp_hash"] != _hash_otp(body.otp):
+                raise HTTPException(status_code=400, detail="Incorrect OTP")
+            conn.execute("UPDATE otps SET used=1 WHERE id=?", (record["id"],))
+
+        if body.dry_run:
+            return {"detail": "OK"}
+
         conn.execute(
             "INSERT INTO users (username, email, password_hash) VALUES (?,?,?)",
-            (body.username.strip(), body.email, hash_password(body.password))
+            (body.username.strip(), body.email or None, hash_password(body.password))
         )
         conn.commit()
         return {"detail": "Account created"}
@@ -144,11 +205,12 @@ def login(form: OAuth2PasswordRequestForm = Depends()):
 
 @router.get("/me")
 def get_me(user=Depends(get_current_user)):
+    u = dict(user)
     return {
-        "id":         user["id"],
-        "username":   user["username"],
-        "email":      user.get("email"),
-        "created_at": user["created_at"]
+        "id":         u["id"],
+        "username":   u["username"],
+        "email":      u.get("email"),
+        "created_at": u["created_at"]
     }
 
 
@@ -216,6 +278,11 @@ def forgot_password(body: ForgotPasswordBody):
         conn.commit()
 
         try:
+            if not SMTP_CONFIGURED:
+                raise HTTPException(
+                    status_code=503,
+                    detail="Email service not configured. Contact the server admin."
+                )
             _send_email(
                 body.email,
                 "CLOTE — Password Reset OTP",

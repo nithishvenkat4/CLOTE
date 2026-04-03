@@ -114,14 +114,20 @@ def download_shared_file(token: str):
         )
         conn.commit()
 
-        path = Path(FILES_DIR) / file["stored_name"]
+        path = Path(FILES_DIR).resolve() / file["stored_name"]
         if not path.exists():
-            raise HTTPException(status_code=404, detail="File missing from storage")
+            # Try fallback: maybe stored_name contains subdirectory
+            path2 = Path(FILES_DIR).resolve() / Path(file["stored_name"]).name
+            if path2.exists():
+                path = path2
+            else:
+                raise HTTPException(status_code=404, detail="File missing from storage")
 
         return FileResponse(
             path=str(path),
             filename=file["filename"],
-            media_type=file["mime_type"] or "application/octet-stream"
+            media_type=file["mime_type"] or "application/octet-stream",
+            headers={"Access-Control-Allow-Origin": "*"}
         )
     finally:
         conn.close()

@@ -25,3 +25,9 @@ Thumbs.db
 *.pem
 *.key
 config.secret.py
+
+#storage files
+server/storage/files
+*.pdf
+*.jpg
+*.png

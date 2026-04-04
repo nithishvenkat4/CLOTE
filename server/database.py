@@ -167,6 +167,20 @@ CREATE TABLE IF NOT EXISTS otps (
 """
 
 
+CREATE_PROJECT_INVITATIONS_TABLE = """
+CREATE TABLE IF NOT EXISTS project_invitations (
+    id          INTEGER PRIMARY KEY AUTOINCREMENT,
+    project_id  INTEGER NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
+    inviter_id  INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    invitee_id  INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    role        TEXT    NOT NULL DEFAULT 'viewer' CHECK(role IN ('owner','editor','viewer')),
+    status      TEXT    NOT NULL DEFAULT 'pending' CHECK(status IN ('pending','accepted','declined')),
+    created_at  TEXT    NOT NULL DEFAULT (datetime('now')),
+    updated_at  TEXT    NOT NULL DEFAULT (datetime('now')),
+    UNIQUE(project_id, invitee_id)
+);
+"""
+
 # ─────────────────────────────────────────────
 # Init
 # ─────────────────────────────────────────────
@@ -191,7 +205,8 @@ def init_db() -> None:
             CREATE_VERSIONS_TABLE +
             CREATE_AUDIT_LOG_TABLE +
             CREATE_SHARED_LINKS_TABLE +
-            CREATE_OTPS_TABLE
+            CREATE_OTPS_TABLE +
+            CREATE_PROJECT_INVITATIONS_TABLE
         )
 
         # ── Safe migrations for existing databases ──
@@ -212,6 +227,27 @@ def init_db() -> None:
         _add_column_if_missing(cursor, "users", "email", "TEXT DEFAULT NULL")
         try:
             cursor.execute("CREATE UNIQUE INDEX IF NOT EXISTS idx_users_email ON users(email)")
+        except Exception:
+            pass
+
+        # Project lock column
+        _add_column_if_missing(cursor, "projects", "is_locked", "INTEGER NOT NULL DEFAULT 0")
+
+        # Invitations table (safe for existing DBs without executescript)
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS project_invitations (
+                id          INTEGER PRIMARY KEY AUTOINCREMENT,
+                project_id  INTEGER NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
+                inviter_id  INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+                invitee_id  INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+                role        TEXT    NOT NULL DEFAULT 'viewer',
+                status      TEXT    NOT NULL DEFAULT 'pending',
+                created_at  TEXT    NOT NULL DEFAULT (datetime('now')),
+                updated_at  TEXT    NOT NULL DEFAULT (datetime('now'))
+            )
+        """)
+        try:
+            cursor.execute("CREATE UNIQUE INDEX IF NOT EXISTS idx_proj_inv ON project_invitations(project_id, invitee_id)")
         except Exception:
             pass
 

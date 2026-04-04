@@ -18,6 +18,26 @@
   --mono:'JetBrains Mono',monospace;--sans:'Syne',sans-serif;
   --radius:10px;--radius-sm:6px;--transition:0.18s ease;
 }
+/* Light theme */
+[data-theme="light"]{
+  --bg:#f0f2f8;--surface:#ffffff;--surface2:#e8eaf4;--surface3:#d8dcea;
+  --border:#c8cce0;--border2:#b0b6d0;
+  --accent:#3b6ef0;--accent2:#5b4cd8;--accent-glow:rgba(59,110,240,0.12);
+  --text:#1a1e30;--text2:#4a5080;--text3:#8892b0;
+  --danger:#e0304a;--danger-soft:rgba(224,48,74,0.10);
+  --success:#1a9960;--warning:#d4820a;
+  --project:#6d4fc4;--project-soft:rgba(109,79,196,0.12);
+}
+/* Blue theme */
+[data-theme="blue"]{
+  --bg:#05080f;--surface:#090e1c;--surface2:#0d1428;--surface3:#111a34;
+  --border:#1a2540;--border2:#243055;
+  --accent:#4d9fff;--accent2:#6b7fff;--accent-glow:rgba(77,159,255,0.18);
+  --text:#dde8ff;--text2:#7a9acc;--text3:#3a5580;
+  --danger:#ff4466;--danger-soft:rgba(255,68,102,0.12);
+  --success:#33ffaa;--warning:#ffaa33;
+  --project:#9b7ffa;--project-soft:rgba(155,127,250,0.14);
+}
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--sans);font-size:14px;overflow:hidden}
 ::-webkit-scrollbar{width:5px;height:5px}
@@ -302,29 +322,18 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--s
         <input type="password" id="login-pass" placeholder="••••••••" autocomplete="current-password"
           onkeydown="if(event.key==='Enter')doLogin()"/></div>
       <button class="btn-primary" onclick="doLogin()">Login</button>
-      <div style="text-align:right;margin-top:4px">
-        <span onclick="switchTab('forgot')" style="font-size:11px;color:var(--text3);font-family:var(--mono);cursor:pointer;text-decoration:underline">Forgot password?</span>
-      </div>
       <div class="auth-msg" id="login-msg"></div>
     </div>
 
     <!-- Register -->
     <div id="form-register" class="auth-form" style="display:none">
-      <div id="reg-step1" style="display:flex;flex-direction:column;gap:14px">
-        <div class="form-group"><label>Username</label>
-          <input type="text" id="reg-user" placeholder="choose a username"/></div>
-        <div class="form-group"><label>Email <span style="color:var(--danger)">*</span> (required for OTP)</label>
-          <input type="email" id="reg-email" placeholder="you@example.com"/></div>
-        <div class="form-group"><label>Password</label>
-          <input type="password" id="reg-pass" placeholder="••••••••"/></div>
-        <button class="btn-primary" onclick="doRegisterSendOTP()">Send OTP & Continue</button>
-      </div>
-      <div id="reg-step2" style="display:none;flex-direction:column;gap:14px">
-        <div class="form-group"><label>OTP sent to your email</label>
-          <input type="text" id="reg-otp" placeholder="6-digit code" maxlength="6"/></div>
-        <button class="btn-primary" onclick="doRegister()">Verify & Create Account</button>
-        <button class="btn-ghost" onclick="document.getElementById('reg-step1').style.display='flex';document.getElementById('reg-step2').style.display='none';" style="font-size:12px">← Back</button>
-      </div>
+      <div class="form-group"><label>Username</label>
+        <input type="text" id="reg-user" placeholder="choose a username"/></div>
+      <div class="form-group"><label>Email (optional — for password reset)</label>
+        <input type="email" id="reg-email" placeholder="you@example.com"/></div>
+      <div class="form-group"><label>Password</label>
+        <input type="password" id="reg-pass" placeholder="••••••••"/></div>
+      <button class="btn-primary" onclick="doRegister()">Create Account</button>
       <div class="auth-msg" id="reg-msg"></div>
     </div>
 
@@ -359,6 +368,13 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--s
       </button>
       <button class="tb-btn primary" id="btn-upload" onclick="openUploadModal()">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>Upload
+      </button>
+      <button class="tb-btn" id="btn-theme" onclick="cycleTheme()" title="Switch theme" style="padding:7px 10px">
+        <svg id="theme-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+      </button>
+      <button class="tb-btn" id="bell-btn" onclick="openInvitationsModal(event)" title="No pending invitations" style="padding:7px 10px;position:relative">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+        <span id="bell-badge" style="display:none;position:absolute;top:3px;right:3px;min-width:16px;height:16px;background:var(--danger);border-radius:99px;border:2px solid var(--surface);font-size:9px;font-family:var(--mono);color:#fff;display:none;align-items:center;justify-content:center;padding:0 3px" id="bell-badge"></span>
       </button>
       <div class="user-chip" id="user-chip" onclick="toggleUserMenu(event)">
         <div class="user-avatar" id="user-avatar">?</div>
@@ -466,7 +482,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--s
 <div class="drag-overlay" id="drag-overlay"><div class="drag-overlay-text">Drop to upload</div></div>
 
 <!-- CTX MENU -->
-<div class="ctx-menu" id="ctx-menu">
+<div class="ctx-menu" id="ctx-menu" onclick="event.stopPropagation()">
   <div class="ctx-item" id="ctx-preview" onclick="ctxAction('preview')">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>Preview
   </div>
@@ -723,6 +739,9 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--s
 <div class="preview-panel" id="preview-panel">
   <div class="preview-topbar">
     <div class="preview-title" id="preview-title">Preview</div>
+    <button class="tb-btn" id="preview-ai-btn" style="display:none" onclick="openAISummary()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:13px;height:13px"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 4v4l3 3"/><circle cx="12" cy="12" r="1"/></svg>AI Summary
+    </button>
     <button class="tb-btn" onclick="downloadFile(previewFileId)">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>Download
     </button>
@@ -731,6 +750,28 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--s
     </button>
   </div>
   <div class="preview-body" id="preview-body"></div>
+</div>
+
+<!-- Invitations Modal -->
+<div class="modal-backdrop" id="modal-invitations">
+  <div class="modal"><div class="modal-title">📬 Project Invitations</div>
+    <div class="modal-body" id="invitations-body">
+      <p style="color:var(--text3);font-family:var(--mono);font-size:12px">Loading…</p>
+    </div>
+    <div class="modal-footer"><button class="btn-ghost" onclick="closeModal('modal-invitations')">Close</button></div>
+  </div>
+</div>
+
+<!-- AI Summary Modal -->
+<div class="modal-backdrop" id="modal-ai-summary">
+  <div class="modal wide"><div class="modal-title">🤖 AI Summary — <span id="ai-summary-filename" style="color:var(--accent)"></span></div>
+    <div class="modal-body">
+      <div id="ai-summary-body" style="font-size:13px;color:var(--text2);line-height:1.7;font-family:var(--sans);white-space:pre-wrap;max-height:400px;overflow-y:auto">
+        <p style="color:var(--text3);font-family:var(--mono)">Generating summary…</p>
+      </div>
+    </div>
+    <div class="modal-footer"><button class="btn-ghost" onclick="closeModal('modal-ai-summary')">Close</button></div>
+  </div>
 </div>
 
 <div id="toast-container"></div>
@@ -765,6 +806,7 @@ let searchResults      = {files:[],folders:[]};
 
 let selectedIds  = new Set();
 let ctxTarget    = null;
+let ctxJustOpened= false;
 let verFileId    = null;
 let verCurrentNum= null;
 let newVerFileId = null;
@@ -782,10 +824,11 @@ let searchTimer  = null;
 function switchTab(tab){
   ['login','register','forgot'].forEach(t=>{
     document.getElementById('form-'+t).style.display = t===tab?'flex':'none';
+    document.getElementById('tab-'+(t==='register'?'reg':t==='forgot'?'forgot':t)).classList.toggle('active',t===tab);
   });
-  document.getElementById('tab-login').classList.toggle('active', tab==='login');
-  document.getElementById('tab-reg').classList.toggle('active', tab==='register');
-  document.getElementById('tab-forgot').classList.toggle('active', tab==='forgot');
+  document.getElementById('tab-reg').classList.toggle('active',tab==='register');
+  document.getElementById('tab-forgot').classList.toggle('active',tab==='forgot');
+  document.getElementById('tab-login').classList.toggle('active',tab==='login');
 }
 
 async function doLogin(){
@@ -811,42 +854,19 @@ async function doLogin(){
   }catch(e){setMsg(msg,'Cannot reach server','error');}
 }
 
-async function doRegisterSendOTP(){
+async function doRegister(){
   const user=document.getElementById('reg-user').value.trim();
   const email=document.getElementById('reg-email').value.trim();
   const pass=document.getElementById('reg-pass').value;
   const msg=document.getElementById('reg-msg');
   if(!user||!pass){setMsg(msg,'Fill in username and password','error');return;}
-  if(!email){setMsg(msg,'Email is required for OTP verification','error');return;}
-  try{
-    // Check username availability first
-    const check=await fetch(`${API}/auth/register`,{method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({username:user,password:pass,email,dry_run:true})});
-    // Send OTP to email for registration
-    const r=await fetch(`${API}/auth/register-otp`,{method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({email})});
-    const d=await r.json();
-    if(!r.ok){setMsg(msg,d.detail||'Failed to send OTP','error');return;}
-    setMsg(msg,'OTP sent to '+email,'ok');
-    document.getElementById('reg-step1').style.display='none';
-    document.getElementById('reg-step2').style.display='flex';
-  }catch(e){setMsg(msg,'Cannot reach server','error');}
-}
-
-async function doRegister(){
-  const user=document.getElementById('reg-user').value.trim();
-  const email=document.getElementById('reg-email').value.trim();
-  const pass=document.getElementById('reg-pass').value;
-  const otp=document.getElementById('reg-otp').value.trim();
-  const msg=document.getElementById('reg-msg');
-  if(!otp){setMsg(msg,'Enter the OTP from your email','error');return;}
   try{
     const r=await fetch(`${API}/auth/register`,{method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({username:user,password:pass,email,otp})});
+      body:JSON.stringify({username:user,password:pass,email:email||null})});
     const d=await r.json();
     if(!r.ok){setMsg(msg,d.detail||'Register failed','error');return;}
     setMsg(msg,'Account created! Please log in.','ok');
-    setTimeout(()=>{switchTab('login');document.getElementById('login-user').value=user;},1200);
+    switchTab('login');document.getElementById('login-user').value=user;
   }catch(e){setMsg(msg,'Cannot reach server','error');}
 }
 
@@ -885,6 +905,7 @@ function toggleUserMenu(e){e.stopPropagation();document.getElementById('user-dro
 function confirmLogout(e){e.stopPropagation();document.getElementById('user-dropdown').classList.remove('open');openModal('modal-logout');}
 
 function doLogout(){
+  if(window._invPollId){clearInterval(window._invPollId);window._invPollId=null;}
   token=null;currentUser=null;currentUserId=0;currentEmail=null;
   localStorage.removeItem('clote_token');localStorage.removeItem('clote_user');
   localStorage.removeItem('clote_uid');localStorage.removeItem('clote_email');
@@ -910,6 +931,72 @@ function startApp(){
 async function loadAll(){
   await Promise.all([fetchAllPersonalFolders(),fetchAllProjects()]);
   navMyFiles();
+  pollInvitations();
+  window._invPollId=setInterval(pollInvitations,30000);
+}
+
+// ═══════════════════════════════════
+// INVITATIONS
+// ═══════════════════════════════════
+let pendingInvitations=[];
+
+async function pollInvitations(){
+  try{
+    const r=await apiFetch('/projects/invitations/pending');
+    if(!r.ok)return;
+    const d=await r.json();
+    pendingInvitations=d.invitations||[];
+    const badge=document.getElementById('bell-badge');
+    const btn=document.getElementById('bell-btn');
+    if(pendingInvitations.length){
+      badge.textContent=pendingInvitations.length;
+      badge.style.display='flex';
+      const summary=pendingInvitations.map(i=>`"${i.project_name}" from ${i.inviter_username}`).join('\n');
+      btn.title=`${pendingInvitations.length} pending invitation${pendingInvitations.length>1?'s':''}:\n${summary}`;
+    }else{
+      badge.style.display='none';
+      btn.title='No pending invitations';
+    }
+  }catch(e){}
+}
+
+async function openInvitationsModal(e){
+  e.stopPropagation();
+  closeCtx();
+  document.getElementById('user-dropdown').classList.remove('open');
+  openModal('modal-invitations');
+  renderInvitations();
+}
+
+function renderInvitations(){
+  const body=document.getElementById('invitations-body');
+  if(!pendingInvitations.length){
+    body.innerHTML='<p style="color:var(--text3);font-family:var(--mono);font-size:12px">No pending invitations</p>';
+    return;
+  }
+  body.innerHTML=pendingInvitations.map(inv=>`
+    <div style="display:flex;align-items:center;gap:10px;padding:12px;background:var(--surface2);border-radius:var(--radius-sm);border:1px solid var(--border);margin-bottom:8px">
+      <div style="flex:1">
+        <div style="font-size:13px;color:var(--text);font-weight:600">${escHtml(inv.project_name)}</div>
+        <div style="font-size:11px;color:var(--text3);font-family:var(--mono);margin-top:2px">
+          from <b style="color:var(--text2)">${escHtml(inv.inviter_username)}</b> · role: <b style="color:var(--accent)">${escHtml(inv.role)}</b>
+        </div>
+      </div>
+      <button class="btn-primary" style="padding:7px 14px;font-size:12px;margin:0" onclick="handleInvitation(${inv.id},'accept')">Accept</button>
+      <button class="btn-ghost" style="padding:7px 14px;font-size:12px" onclick="handleInvitation(${inv.id},'decline')">Decline</button>
+    </div>`).join('');
+}
+
+async function handleInvitation(invId,action){
+  try{
+    const r=await apiFetch(`/projects/invitations/${invId}/${action}`,{method:'POST'});
+    const d=await r.json();
+    if(!r.ok){toast(d.detail||'Failed','error');return;}
+    toast(action==='accept'?'Invitation accepted!':'Invitation declined','success');
+    await pollInvitations();
+    if(action==='accept')await fetchAllProjects();
+    renderInvitations();
+  }catch(e){toast('Error','error');}
 }
 
 // ═══════════════════════════════════
@@ -1195,10 +1282,10 @@ async function bulkMove(){
 // ═══════════════════════════════════
 // CTX MENU
 // ═══════════════════════════════════
-let _ctxJustOpened=false;
 function showCtx(e,type,id,name){
   e.preventDefault();e.stopPropagation();
   ctxTarget={type,id,name};
+  ctxJustOpened=true;
   const m=document.getElementById('ctx-menu');
   const isFile=type==='file';
   document.getElementById('ctx-preview').style.display=isFile?'':'none';
@@ -1206,19 +1293,13 @@ function showCtx(e,type,id,name){
   document.getElementById('ctx-versions').style.display=isFile?'':'none';
   document.getElementById('ctx-newver').style.display=isFile?'':'none';
   document.getElementById('ctx-share').style.display=isFile?'':'none';
-  m.style.display='block';
   const x=Math.min(e.clientX,window.innerWidth-200);
   const y=Math.min(e.clientY,window.innerHeight-300);
   m.style.left=x+'px';m.style.top=y+'px';
   m.classList.add('open');
-  _ctxJustOpened=true;
-  setTimeout(()=>{_ctxJustOpened=false;},150);
 }
 
-function closeCtx(){
-  if(_ctxJustOpened)return;
-  document.getElementById('ctx-menu').classList.remove('open');
-}
+function closeCtx(){document.getElementById('ctx-menu').classList.remove('open');}
 
 function ctxAction(action){
   closeCtx();
@@ -1534,28 +1615,42 @@ async function doEmptyTrash(){
 // ═══════════════════════════════════
 // PREVIEW
 // ═══════════════════════════════════
-const PREVIEWABLE=['image/jpeg','image/png','image/gif','image/webp','image/svg+xml','application/pdf','text/plain','text/markdown','text/csv','text/html','application/json'];
 async function openPreview(fileId){
   previewFileId=fileId;
-  const file=currentFiles.find(f=>f.id===fileId);
-  if(!file)return;
-  document.getElementById('preview-title').textContent=file.filename;
+  // Try local cache first, else fetch metadata
+  let file=currentFiles.find(f=>f.id===fileId);
+  if(!file){
+    try{
+      const r=await apiFetch(`/files/${fileId}/meta`);
+      if(r.ok)file=await r.json();
+    }catch(e){}
+  }
+  const filename=file?file.filename:'File';
+  const mime=file?(file.mime_type||''):'';
+  document.getElementById('preview-title').textContent=filename;
+  // Show AI summary button only for text/code files
+  const aiBtn=document.getElementById('preview-ai-btn');
+  aiBtn.style.display=(mime.startsWith('text/')||mime==='application/json'||isTextExt(filename))?'':'none';
   const body=document.getElementById('preview-body');
   body.innerHTML='<p style="color:var(--text3);font-family:var(--mono)">Loading…</p>';
   document.getElementById('preview-panel').classList.add('open');
-  const mime=file.mime_type||'';
   try{
-    const r=await apiFetch(`/files/${fileId}/preview`);
-    if(!r.ok){body.innerHTML='<p style="color:var(--danger);font-family:var(--mono)">Preview failed: '+r.status+'</p>';return;}
     if(mime.startsWith('image/')){
+      // Fetch as blob to send auth header
+      const r=await apiFetch(`/files/${fileId}/preview`);
+      if(!r.ok)throw new Error('fetch failed');
       const blob=await r.blob();
-      const url=URL.createObjectURL(blob);
-      body.innerHTML=`<img src="${url}" style="max-width:100%;max-height:80vh;object-fit:contain;border-radius:var(--radius)" onerror="this.parentNode.innerHTML='<p style=color:var(--text3)>Failed to load</p>'"/>`;
+      const burl=URL.createObjectURL(blob);
+      body.innerHTML=`<img src="${burl}" style="max-width:100%;max-height:80vh;object-fit:contain" onerror="this.parentNode.innerHTML='<p style=color:var(--text3)>Failed to load</p>'"/>`;
     }else if(mime==='application/pdf'){
+      const r=await apiFetch(`/files/${fileId}/preview`);
+      if(!r.ok)throw new Error('fetch failed');
       const blob=await r.blob();
-      const url=URL.createObjectURL(blob);
-      body.innerHTML=`<iframe src="${url}" style="width:100%;height:80vh;border:none;border-radius:var(--radius);background:#fff"></iframe>`;
-    }else if(mime.startsWith('text/')||mime==='application/json'){
+      const burl=URL.createObjectURL(blob);
+      body.innerHTML=`<iframe src="${burl}" style="width:100%;height:80vh;border:none;border-radius:var(--radius);background:#fff"></iframe>`;
+    }else if(mime.startsWith('text/')||mime==='application/json'||isTextExt(filename)){
+      const r=await apiFetch(`/files/${fileId}/preview`);
+      if(!r.ok)throw new Error('fetch failed');
       const txt=await r.text();
       body.innerHTML=`<pre>${escHtml(txt)}</pre>`;
     }else{
@@ -1563,10 +1658,30 @@ async function openPreview(fileId){
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/></svg>
         <p>Preview not available</p><small>${mime||'unknown type'}</small></div>`;
     }
-  }catch(e){body.innerHTML='<p style="color:var(--danger);font-family:var(--mono)">Preview error</p>';}
+  }catch(err){
+    body.innerHTML='<p style="color:var(--danger);font-family:var(--mono);text-align:center">Failed to load preview</p>';
+  }
+}
+
+function isTextExt(filename){
+  const ext=(filename||'').split('.').pop().toLowerCase();
+  return['txt','md','csv','json','js','ts','py','java','cpp','c','go','rs','html','css','yaml','xml','sh','env','ini','toml','log'].includes(ext);
 }
 
 function closePreview(){document.getElementById('preview-panel').classList.remove('open');}
+
+async function openAISummary(){
+  const file=currentFiles.find(f=>f.id===previewFileId)||{filename:'File'};
+  document.getElementById('ai-summary-filename').textContent=file.filename;
+  document.getElementById('ai-summary-body').innerHTML='<p style="color:var(--text3);font-family:var(--mono)">Generating summary…</p>';
+  openModal('modal-ai-summary');
+  try{
+    const r=await apiFetch(`/ai/summarize/${previewFileId}`,{method:'POST'});
+    const d=await r.json();
+    if(!r.ok){document.getElementById('ai-summary-body').textContent=d.detail||'Failed to generate summary';return;}
+    document.getElementById('ai-summary-body').textContent=d.summary||d.detail||'No summary returned';
+  }catch(e){document.getElementById('ai-summary-body').textContent='Error contacting AI service';}
+}
 
 // ═══════════════════════════════════
 // PROJECTS
@@ -1645,13 +1760,13 @@ async function loadProjectMembers(){
       <div class="member-row">
         <div class="member-av">${(m.username||'?')[0].toUpperCase()}</div>
         <div class="member-name">${escHtml(m.username)}<small>joined ${fmtDate(m.joined_at)}</small></div>
-        ${currentProjectRole==='owner'&&m.user_id!==currentUserId?
-          `<select class="member-role-sel" onchange="changeMemberRole(${m.user_id},this.value)">
+        ${currentProjectRole==='owner'&&m.id!==currentUserId?
+          `<select class="member-role-sel" onchange="changeMemberRole(${m.id},this.value)">
             <option value="viewer" ${m.role==='viewer'?'selected':''}>Viewer</option>
             <option value="editor" ${m.role==='editor'?'selected':''}>Editor</option>
             <option value="owner" ${m.role==='owner'?'selected':''}>Owner</option>
           </select>
-          <div class="icon-btn danger" onclick="removeMember(${m.user_id},'${escHtml(m.username)}')">
+          <div class="icon-btn danger" onclick="removeMember(${m.id},'${escHtml(m.username)}')">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></div>`
           :`<span class="role-chip ${m.role}">${m.role}</span>`}
       </div>`).join('');
@@ -1662,13 +1777,12 @@ async function doInviteMember(){
   const username=document.getElementById('ps-invite-user').value.trim();
   const role=document.getElementById('ps-invite-role').value;
   if(!username)return;
-  const proj=allProjects.find(p=>p.id===psProjectId);
-  if(!confirm(`Invite "${username}" to project "${proj?.name||''}" as ${role}?`))return;
   try{
     const r=await apiFetch(`/projects/${psProjectId}/members`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username,role})});
-    if(!r.ok){const d=await r.json();toast(d.detail||'Failed','error');return;}
-    toast(`${username} invited as ${role}`,'success');document.getElementById('ps-invite-user').value='';
-    await loadProjectMembers();await fetchAllProjects();
+    const d=await r.json();
+    if(!r.ok){toast(d.detail||'Failed','error');return;}
+    toast(`Invitation sent to ${username}`,'success');
+    document.getElementById('ps-invite-user').value='';
   }catch(e){toast('Error','error');}
 }
 
@@ -1747,6 +1861,7 @@ function openModal(id){document.getElementById(id).classList.add('open');}
 function closeModal(id){document.getElementById(id).classList.remove('open');}
 document.querySelectorAll('.modal-backdrop').forEach(bd=>bd.addEventListener('click',e=>{if(e.target===bd)bd.classList.remove('open');}));
 document.addEventListener('click',e=>{
+  if(ctxJustOpened){ctxJustOpened=false;return;}
   closeCtx();
   const chip=document.getElementById('user-chip');
   if(chip&&!chip.contains(e.target))document.getElementById('user-dropdown').classList.remove('open');
@@ -1786,6 +1901,28 @@ function fileIcon(filename,mime){
 // INIT
 // ═══════════════════════════════════
 if(token)startApp();
+
+// ═══════════════════════════════════
+// THEME
+// ═══════════════════════════════════
+const THEMES=['dark','light','blue'];
+const THEME_ICONS={
+  dark:'<circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>',
+  light:'<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>',
+  blue:'<circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/>'
+};
+let currentTheme=localStorage.getItem('clote_theme')||'dark';
+function applyTheme(t){
+  document.documentElement.setAttribute('data-theme',t==='dark'?'':t);
+  document.getElementById('theme-icon').innerHTML=THEME_ICONS[t]||THEME_ICONS.dark;
+  localStorage.setItem('clote_theme',t);
+}
+function cycleTheme(){
+  currentTheme=THEMES[(THEMES.indexOf(currentTheme)+1)%THEMES.length];
+  applyTheme(currentTheme);
+  toast(`Theme: ${currentTheme}`,'info');
+}
+applyTheme(currentTheme);
 </script>
 </body>
 </html>

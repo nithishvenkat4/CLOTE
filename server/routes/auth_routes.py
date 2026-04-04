@@ -16,6 +16,7 @@ from pydantic import BaseModel, EmailStr
 from typing import Optional
 
 from auth import get_current_user, hash_password, verify_password, create_access_token
+from routes.audit_routes import log_action
 from database import get_db
 
 router = APIRouter(prefix="/auth", tags=["auth"])
@@ -169,10 +170,11 @@ def register(body: RegisterBody):
         if body.dry_run:
             return {"detail": "OK"}
 
-        conn.execute(
+        cur = conn.execute(
             "INSERT INTO users (username, email, password_hash) VALUES (?,?,?)",
             (body.username.strip(), body.email or None, hash_password(body.password))
         )
+        log_action(conn, cur.lastrowid, body.username.strip(), "register", detail="account created")
         conn.commit()
         return {"detail": "Account created"}
     finally:
@@ -194,6 +196,8 @@ def login(form: OAuth2PasswordRequestForm = Depends()):
             raise HTTPException(status_code=401, detail="Invalid username or password")
 
         token = create_access_token({"sub": user["username"]})
+        log_action(conn, user["id"], user["username"], "login", detail="login")
+        conn.commit()
         return {"access_token": token, "token_type": "bearer"}
     finally:
         conn.close()

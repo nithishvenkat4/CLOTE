@@ -48,6 +48,7 @@ from routes.trash_routes   import router as trash_router
 from routes.share_routes   import router as share_router
 from routes.bulk_routes    import router as bulk_router
 from routes.audit_routes   import router as audit_router
+from routes.ai_routes       import router as ai_router
 
 app.include_router(auth_router)
 app.include_router(project_router)
@@ -57,3 +58,4 @@ app.include_router(trash_router)
 app.include_router(share_router)
 app.include_router(bulk_router)
 app.include_router(audit_router)
+app.include_router(ai_router)

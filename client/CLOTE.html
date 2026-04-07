@@ -18,26 +18,6 @@
   --mono:'JetBrains Mono',monospace;--sans:'Syne',sans-serif;
   --radius:10px;--radius-sm:6px;--transition:0.18s ease;
 }
-/* Light theme */
-[data-theme="light"]{
-  --bg:#f0f2f8;--surface:#ffffff;--surface2:#e8eaf4;--surface3:#d8dcea;
-  --border:#c8cce0;--border2:#b0b6d0;
-  --accent:#3b6ef0;--accent2:#5b4cd8;--accent-glow:rgba(59,110,240,0.12);
-  --text:#1a1e30;--text2:#4a5080;--text3:#8892b0;
-  --danger:#e0304a;--danger-soft:rgba(224,48,74,0.10);
-  --success:#1a9960;--warning:#d4820a;
-  --project:#6d4fc4;--project-soft:rgba(109,79,196,0.12);
-}
-/* Blue theme */
-[data-theme="blue"]{
-  --bg:#05080f;--surface:#090e1c;--surface2:#0d1428;--surface3:#111a34;
-  --border:#1a2540;--border2:#243055;
-  --accent:#4d9fff;--accent2:#6b7fff;--accent-glow:rgba(77,159,255,0.18);
-  --text:#dde8ff;--text2:#7a9acc;--text3:#3a5580;
-  --danger:#ff4466;--danger-soft:rgba(255,68,102,0.12);
-  --success:#33ffaa;--warning:#ffaa33;
-  --project:#9b7ffa;--project-soft:rgba(155,127,250,0.14);
-}
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--sans);font-size:14px;overflow:hidden}
 ::-webkit-scrollbar{width:5px;height:5px}
@@ -332,7 +312,9 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--s
       <div class="form-group"><label>Email (optional — for password reset)</label>
         <input type="email" id="reg-email" placeholder="you@example.com"/></div>
       <div class="form-group"><label>Password</label>
-        <input type="password" id="reg-pass" placeholder="••••••••"/></div>
+        <input type="password" id="reg-pass" placeholder="••••••••" oninput="checkPwdStrength(this.value)"/>
+        <div id="pwd-strength" style="margin-top:6px;font-size:0.78rem;line-height:1.6;color:var(--text3)"></div>
+      </div>
       <button class="btn-primary" onclick="doRegister()">Create Account</button>
       <div class="auth-msg" id="reg-msg"></div>
     </div>
@@ -368,13 +350,6 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--s
       </button>
       <button class="tb-btn primary" id="btn-upload" onclick="openUploadModal()">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>Upload
-      </button>
-      <button class="tb-btn" id="btn-theme" onclick="cycleTheme()" title="Switch theme" style="padding:7px 10px">
-        <svg id="theme-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
-      </button>
-      <button class="tb-btn" id="bell-btn" onclick="openInvitationsModal(event)" title="No pending invitations" style="padding:7px 10px;position:relative">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
-        <span id="bell-badge" style="display:none;position:absolute;top:3px;right:3px;min-width:16px;height:16px;background:var(--danger);border-radius:99px;border:2px solid var(--surface);font-size:9px;font-family:var(--mono);color:#fff;display:none;align-items:center;justify-content:center;padding:0 3px" id="bell-badge"></span>
       </button>
       <div class="user-chip" id="user-chip" onclick="toggleUserMenu(event)">
         <div class="user-avatar" id="user-avatar">?</div>
@@ -482,7 +457,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--s
 <div class="drag-overlay" id="drag-overlay"><div class="drag-overlay-text">Drop to upload</div></div>
 
 <!-- CTX MENU -->
-<div class="ctx-menu" id="ctx-menu" onclick="event.stopPropagation()">
+<div class="ctx-menu" id="ctx-menu">
   <div class="ctx-item" id="ctx-preview" onclick="ctxAction('preview')">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>Preview
   </div>
@@ -498,6 +473,10 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--s
   <div class="ctx-item" id="ctx-share" onclick="ctxAction('share')">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>Share Link
   </div>
+  <div class="ctx-sep" id="ctx-sep-ai"></div>
+  <div class="ctx-item" id="ctx-ai" onclick="ctxAction('ai-summary')" style="display:none">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a10 10 0 1 0 0 20A10 10 0 0 0 12 2z"/><path d="M12 8v4l3 3"/></svg>AI Summary
+  </div>
   <div class="ctx-sep"></div>
   <div class="ctx-item" id="ctx-rename" onclick="ctxAction('rename')">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>Rename
@@ -508,6 +487,24 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--s
   <div class="ctx-sep" id="ctx-sep-danger"></div>
   <div class="ctx-item danger" id="ctx-delete" onclick="ctxAction('delete')">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>Move to Trash
+  </div>
+</div>
+
+<!-- AI Summary Modal -->
+<div class="modal-backdrop" id="modal-ai-summary">
+  <div class="modal" style="max-width:520px">
+    <div class="modal-title">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px;vertical-align:-3px;margin-right:6px"><path d="M12 2a10 10 0 1 0 0 20A10 10 0 0 0 12 2z"/><path d="M12 8v4l3 3"/></svg>
+      AI Summary — <span id="ai-summary-filename" style="font-weight:400;opacity:0.7"></span>
+    </div>
+    <div class="modal-body">
+      <div id="ai-summary-body" style="min-height:80px;color:var(--text2);line-height:1.7;white-space:pre-wrap;font-size:0.95rem">
+        <span style="opacity:0.5">Generating summary…</span>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModal('modal-ai-summary')">Close</button>
+    </div>
   </div>
 </div>
 
@@ -739,9 +736,6 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--s
 <div class="preview-panel" id="preview-panel">
   <div class="preview-topbar">
     <div class="preview-title" id="preview-title">Preview</div>
-    <button class="tb-btn" id="preview-ai-btn" style="display:none" onclick="openAISummary()">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:13px;height:13px"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 4v4l3 3"/><circle cx="12" cy="12" r="1"/></svg>AI Summary
-    </button>
     <button class="tb-btn" onclick="downloadFile(previewFileId)">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>Download
     </button>
@@ -750,28 +744,6 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--s
     </button>
   </div>
   <div class="preview-body" id="preview-body"></div>
-</div>
-
-<!-- Invitations Modal -->
-<div class="modal-backdrop" id="modal-invitations">
-  <div class="modal"><div class="modal-title">📬 Project Invitations</div>
-    <div class="modal-body" id="invitations-body">
-      <p style="color:var(--text3);font-family:var(--mono);font-size:12px">Loading…</p>
-    </div>
-    <div class="modal-footer"><button class="btn-ghost" onclick="closeModal('modal-invitations')">Close</button></div>
-  </div>
-</div>
-
-<!-- AI Summary Modal -->
-<div class="modal-backdrop" id="modal-ai-summary">
-  <div class="modal wide"><div class="modal-title">🤖 AI Summary — <span id="ai-summary-filename" style="color:var(--accent)"></span></div>
-    <div class="modal-body">
-      <div id="ai-summary-body" style="font-size:13px;color:var(--text2);line-height:1.7;font-family:var(--sans);white-space:pre-wrap;max-height:400px;overflow-y:auto">
-        <p style="color:var(--text3);font-family:var(--mono)">Generating summary…</p>
-      </div>
-    </div>
-    <div class="modal-footer"><button class="btn-ghost" onclick="closeModal('modal-ai-summary')">Close</button></div>
-  </div>
 </div>
 
 <div id="toast-container"></div>
@@ -806,7 +778,6 @@ let searchResults      = {files:[],folders:[]};
 
 let selectedIds  = new Set();
 let ctxTarget    = null;
-let ctxJustOpened= false;
 let verFileId    = null;
 let verCurrentNum= null;
 let newVerFileId = null;
@@ -854,12 +825,38 @@ async function doLogin(){
   }catch(e){setMsg(msg,'Cannot reach server','error');}
 }
 
+function checkPwdStrength(pwd){
+  const el=document.getElementById('pwd-strength');
+  if(!el)return;
+  if(!pwd){el.innerHTML='';return;}
+  const rules=[
+    {ok:pwd.length>=8,          text:'At least 8 characters'},
+    {ok:/[A-Z]/.test(pwd),      text:'One uppercase letter'},
+    {ok:/[a-z]/.test(pwd),      text:'One lowercase letter'},
+    {ok:/[0-9]/.test(pwd),      text:'One number'},
+    {ok:/[!@#$%^&*()_+\-=\[\]{}|;:,.<>?]/.test(pwd), text:'One special character'},
+  ];
+  el.innerHTML=rules.map(r=>`<span style="color:${r.ok?'var(--ok, #4caf50)':'var(--text3)'}">
+    ${r.ok?'✓':'○'} ${r.text}</span>`).join('&nbsp;&nbsp;');
+}
+
+function validatePassword(pwd){
+  if(pwd.length<8)return'Password must be at least 8 characters';
+  if(!/[A-Z]/.test(pwd))return'Need at least one uppercase letter';
+  if(!/[a-z]/.test(pwd))return'Need at least one lowercase letter';
+  if(!/[0-9]/.test(pwd))return'Need at least one number';
+  if(!/[!@#$%^&*()_+\-=\[\]{}|;:,.<>?]/.test(pwd))return'Need at least one special character';
+  return null;
+}
+
 async function doRegister(){
   const user=document.getElementById('reg-user').value.trim();
   const email=document.getElementById('reg-email').value.trim();
   const pass=document.getElementById('reg-pass').value;
   const msg=document.getElementById('reg-msg');
   if(!user||!pass){setMsg(msg,'Fill in username and password','error');return;}
+  const pwdErr=validatePassword(pass);
+  if(pwdErr){setMsg(msg,pwdErr,'error');return;}
   try{
     const r=await fetch(`${API}/auth/register`,{method:'POST',headers:{'Content-Type':'application/json'},
       body:JSON.stringify({username:user,password:pass,email:email||null})});
@@ -905,7 +902,6 @@ function toggleUserMenu(e){e.stopPropagation();document.getElementById('user-dro
 function confirmLogout(e){e.stopPropagation();document.getElementById('user-dropdown').classList.remove('open');openModal('modal-logout');}
 
 function doLogout(){
-  if(window._invPollId){clearInterval(window._invPollId);window._invPollId=null;}
   token=null;currentUser=null;currentUserId=0;currentEmail=null;
   localStorage.removeItem('clote_token');localStorage.removeItem('clote_user');
   localStorage.removeItem('clote_uid');localStorage.removeItem('clote_email');
@@ -931,72 +927,6 @@ function startApp(){
 async function loadAll(){
   await Promise.all([fetchAllPersonalFolders(),fetchAllProjects()]);
   navMyFiles();
-  pollInvitations();
-  window._invPollId=setInterval(pollInvitations,30000);
-}
-
-// ═══════════════════════════════════
-// INVITATIONS
-// ═══════════════════════════════════
-let pendingInvitations=[];
-
-async function pollInvitations(){
-  try{
-    const r=await apiFetch('/projects/invitations/pending');
-    if(!r.ok)return;
-    const d=await r.json();
-    pendingInvitations=d.invitations||[];
-    const badge=document.getElementById('bell-badge');
-    const btn=document.getElementById('bell-btn');
-    if(pendingInvitations.length){
-      badge.textContent=pendingInvitations.length;
-      badge.style.display='flex';
-      const summary=pendingInvitations.map(i=>`"${i.project_name}" from ${i.inviter_username}`).join('\n');
-      btn.title=`${pendingInvitations.length} pending invitation${pendingInvitations.length>1?'s':''}:\n${summary}`;
-    }else{
-      badge.style.display='none';
-      btn.title='No pending invitations';
-    }
-  }catch(e){}
-}
-
-async function openInvitationsModal(e){
-  e.stopPropagation();
-  closeCtx();
-  document.getElementById('user-dropdown').classList.remove('open');
-  openModal('modal-invitations');
-  renderInvitations();
-}
-
-function renderInvitations(){
-  const body=document.getElementById('invitations-body');
-  if(!pendingInvitations.length){
-    body.innerHTML='<p style="color:var(--text3);font-family:var(--mono);font-size:12px">No pending invitations</p>';
-    return;
-  }
-  body.innerHTML=pendingInvitations.map(inv=>`
-    <div style="display:flex;align-items:center;gap:10px;padding:12px;background:var(--surface2);border-radius:var(--radius-sm);border:1px solid var(--border);margin-bottom:8px">
-      <div style="flex:1">
-        <div style="font-size:13px;color:var(--text);font-weight:600">${escHtml(inv.project_name)}</div>
-        <div style="font-size:11px;color:var(--text3);font-family:var(--mono);margin-top:2px">
-          from <b style="color:var(--text2)">${escHtml(inv.inviter_username)}</b> · role: <b style="color:var(--accent)">${escHtml(inv.role)}</b>
-        </div>
-      </div>
-      <button class="btn-primary" style="padding:7px 14px;font-size:12px;margin:0" onclick="handleInvitation(${inv.id},'accept')">Accept</button>
-      <button class="btn-ghost" style="padding:7px 14px;font-size:12px" onclick="handleInvitation(${inv.id},'decline')">Decline</button>
-    </div>`).join('');
-}
-
-async function handleInvitation(invId,action){
-  try{
-    const r=await apiFetch(`/projects/invitations/${invId}/${action}`,{method:'POST'});
-    const d=await r.json();
-    if(!r.ok){toast(d.detail||'Failed','error');return;}
-    toast(action==='accept'?'Invitation accepted!':'Invitation declined','success');
-    await pollInvitations();
-    if(action==='accept')await fetchAllProjects();
-    renderInvitations();
-  }catch(e){toast('Error','error');}
 }
 
 // ═══════════════════════════════════
@@ -1134,10 +1064,10 @@ function renderGrid(folders,files,container){
   });
   files.forEach(f=>{
     const ic=fileIcon(f.filename,f.mime_type);
-    h+=`<div class="file-card ${selectedIds.has('file'+f.id)?'selected':''}" onclick="handleFileClick(event,${f.id})" oncontextmenu="showCtx(event,'file',${f.id},'${escHtml(f.filename)}')">
+    h+=`<div class="file-card ${selectedIds.has('file'+f.id)?'selected':''}" onclick="handleFileClick(event,${f.id})" oncontextmenu="showCtx(event,'file',${f.id},'${escHtml(f.filename)}','${f.mime_type||""}')">
       <div class="card-check ${selectedIds.has('file'+f.id)?'checked':''}" onclick="event.stopPropagation();toggleSelect('file'+${f.id},this)">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>
-      <div class="ctx-btn" onclick="event.stopPropagation();showCtx(event,'file',${f.id},'${escHtml(f.filename)}')">⋯</div>
+      <div class="ctx-btn" onclick="event.stopPropagation();showCtx(event,'file',${f.id},'${escHtml(f.filename)}','${f.mime_type||""}')">⋯</div>
       <div class="file-icon" style="${ic.style}">${ic.emoji}</div>
       <div class="file-name">${escHtml(f.filename)}</div>
       <div class="file-meta">v${f.current_version} · ${fmtSize(f.size_bytes)}</div></div>`;
@@ -1164,7 +1094,7 @@ function renderList(folders,files,container){
   });
   files.forEach(f=>{
     const ic=fileIcon(f.filename,f.mime_type);
-    h+=`<div class="list-item ${selectedIds.has('file'+f.id)?'selected':''}" onclick="handleFileClick(event,${f.id})" oncontextmenu="showCtx(event,'file',${f.id},'${escHtml(f.filename)}')">
+    h+=`<div class="list-item ${selectedIds.has('file'+f.id)?'selected':''}" onclick="handleFileClick(event,${f.id})" oncontextmenu="showCtx(event,'file',${f.id},'${escHtml(f.filename)}','${f.mime_type||""}')">
       <div class="list-check ${selectedIds.has('file'+f.id)?'checked':''}" onclick="event.stopPropagation();toggleSelect('file'+${f.id},this)">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>
       <div class="list-fi" style="${ic.style}">${ic.emoji}</div>
@@ -1282,10 +1212,9 @@ async function bulkMove(){
 // ═══════════════════════════════════
 // CTX MENU
 // ═══════════════════════════════════
-function showCtx(e,type,id,name){
+function showCtx(e,type,id,name,mime){
   e.preventDefault();e.stopPropagation();
-  ctxTarget={type,id,name};
-  ctxJustOpened=true;
+  ctxTarget={type,id,name,mime};
   const m=document.getElementById('ctx-menu');
   const isFile=type==='file';
   document.getElementById('ctx-preview').style.display=isFile?'':'none';
@@ -1293,13 +1222,43 @@ function showCtx(e,type,id,name){
   document.getElementById('ctx-versions').style.display=isFile?'':'none';
   document.getElementById('ctx-newver').style.display=isFile?'':'none';
   document.getElementById('ctx-share').style.display=isFile?'':'none';
-  const x=Math.min(e.clientX,window.innerWidth-200);
-  const y=Math.min(e.clientY,window.innerHeight-300);
-  m.style.left=x+'px';m.style.top=y+'px';
+  const aiItem=document.getElementById('ctx-ai');
+  const aiSep=document.getElementById('ctx-sep-ai');
+  if(aiItem){
+    const isTextLike=mime&&(mime.startsWith('text/')||mime==='application/json'||mime==='application/javascript');
+    const show=(isFile&&isTextLike)?'':'none';
+    aiItem.style.display=show;
+    if(aiSep)aiSep.style.display=show;
+  }
+  // Measure using visibility:hidden so CSS display:block kicks in without showing it
+  m.style.visibility='hidden';
   m.classList.add('open');
+  const menuH=m.offsetHeight||220;
+  const x=Math.min(e.clientX,window.innerWidth-200);
+  const y=Math.max(8,Math.min(e.clientY,window.innerHeight-menuH-8));
+  m.style.left=x+'px';m.style.top=y+'px';
+  m.style.visibility='';
 }
 
-function closeCtx(){document.getElementById('ctx-menu').classList.remove('open');}
+async function openAiSummary(fileId,filename){
+  document.getElementById('ai-summary-filename').textContent=filename;
+  document.getElementById('ai-summary-body').innerHTML='<span style="opacity:0.5">Generating summary…</span>';
+  openModal('modal-ai-summary');
+  try{
+    const r=await apiFetch(`/ai/files/${fileId}/summarize`,{method:'POST'});
+    if(!r.ok){
+      const d=await r.json().catch(()=>({}));
+      document.getElementById('ai-summary-body').textContent=d.detail||'Failed to generate summary.';
+      return;
+    }
+    const d=await r.json();
+    document.getElementById('ai-summary-body').textContent=d.summary||d.result||JSON.stringify(d);
+  }catch(e){
+    document.getElementById('ai-summary-body').textContent='Error contacting AI service.';
+  }
+}
+
+function closeCtx(){const m=document.getElementById('ctx-menu');m.classList.remove('open');m.style.visibility='';}
 
 function ctxAction(action){
   closeCtx();
@@ -1313,6 +1272,7 @@ function ctxAction(action){
   else if(action==='rename')openRenameModal(type,id,name);
   else if(action==='move')openMoveModal(id);
   else if(action==='delete')openDeleteModal(type,id,name);
+  else if(action==='ai-summary')openAiSummary(id,name);
 }
 
 // ═══════════════════════════════════
@@ -1615,73 +1575,47 @@ async function doEmptyTrash(){
 // ═══════════════════════════════════
 // PREVIEW
 // ═══════════════════════════════════
+const PREVIEWABLE=['image/jpeg','image/png','image/gif','image/webp','image/svg+xml','application/pdf','text/plain','text/markdown','text/csv','text/html','application/json'];
 async function openPreview(fileId){
   previewFileId=fileId;
-  // Try local cache first, else fetch metadata
-  let file=currentFiles.find(f=>f.id===fileId);
-  if(!file){
-    try{
-      const r=await apiFetch(`/files/${fileId}/meta`);
-      if(r.ok)file=await r.json();
-    }catch(e){}
-  }
-  const filename=file?file.filename:'File';
-  const mime=file?(file.mime_type||''):'';
-  document.getElementById('preview-title').textContent=filename;
-  // Show AI summary button only for text/code files
-  const aiBtn=document.getElementById('preview-ai-btn');
-  aiBtn.style.display=(mime.startsWith('text/')||mime==='application/json'||isTextExt(filename))?'':'none';
+  const file=currentFiles.find(f=>f.id===fileId);
+  if(!file)return;
+  document.getElementById('preview-title').textContent=file.filename;
   const body=document.getElementById('preview-body');
   body.innerHTML='<p style="color:var(--text3);font-family:var(--mono)">Loading…</p>';
   document.getElementById('preview-panel').classList.add('open');
-  try{
-    if(mime.startsWith('image/')){
-      // Fetch as blob to send auth header
+  const url=`${API}/files/${fileId}/preview`;
+  const mime=file.mime_type||'';
+  if(mime.startsWith('image/')){
+    try{
       const r=await apiFetch(`/files/${fileId}/preview`);
-      if(!r.ok)throw new Error('fetch failed');
+      if(!r.ok)throw new Error();
       const blob=await r.blob();
-      const burl=URL.createObjectURL(blob);
-      body.innerHTML=`<img src="${burl}" style="max-width:100%;max-height:80vh;object-fit:contain" onerror="this.parentNode.innerHTML='<p style=color:var(--text3)>Failed to load</p>'"/>`;
-    }else if(mime==='application/pdf'){
+      const objUrl=URL.createObjectURL(blob);
+      body.innerHTML=`<img src="${objUrl}" style="max-width:100%;max-height:80vh;object-fit:contain" onload="" onerror="this.parentNode.innerHTML='<p style=color:var(--text3)>Failed to load image</p>'"/>`;
+    }catch(e){body.innerHTML='<p style="color:var(--text3)">Failed to load image</p>';}
+  }else if(mime==='application/pdf'){
+    try{
       const r=await apiFetch(`/files/${fileId}/preview`);
-      if(!r.ok)throw new Error('fetch failed');
+      if(!r.ok)throw new Error();
       const blob=await r.blob();
-      const burl=URL.createObjectURL(blob);
-      body.innerHTML=`<iframe src="${burl}" style="width:100%;height:80vh;border:none;border-radius:var(--radius);background:#fff"></iframe>`;
-    }else if(mime.startsWith('text/')||mime==='application/json'||isTextExt(filename)){
+      const objUrl=URL.createObjectURL(blob);
+      body.innerHTML=`<iframe src="${objUrl}" style="width:100%;height:80vh;border:none;border-radius:var(--radius);background:#fff"></iframe>`;
+    }catch(e){body.innerHTML='<p style="color:var(--text3)">Failed to load PDF</p>';}
+  }else if(mime.startsWith('text/')||mime==='application/json'){
+    try{
       const r=await apiFetch(`/files/${fileId}/preview`);
-      if(!r.ok)throw new Error('fetch failed');
       const txt=await r.text();
       body.innerHTML=`<pre>${escHtml(txt)}</pre>`;
-    }else{
-      body.innerHTML=`<div class="preview-unsupported">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/></svg>
-        <p>Preview not available</p><small>${mime||'unknown type'}</small></div>`;
-    }
-  }catch(err){
-    body.innerHTML='<p style="color:var(--danger);font-family:var(--mono);text-align:center">Failed to load preview</p>';
+    }catch(e){body.innerHTML='<p style="color:var(--text3)">Failed to load</p>';}
+  }else{
+    body.innerHTML=`<div class="preview-unsupported">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/></svg>
+      <p>Preview not available</p><small>${mime||'unknown type'}</small></div>`;
   }
 }
 
-function isTextExt(filename){
-  const ext=(filename||'').split('.').pop().toLowerCase();
-  return['txt','md','csv','json','js','ts','py','java','cpp','c','go','rs','html','css','yaml','xml','sh','env','ini','toml','log'].includes(ext);
-}
-
 function closePreview(){document.getElementById('preview-panel').classList.remove('open');}
-
-async function openAISummary(){
-  const file=currentFiles.find(f=>f.id===previewFileId)||{filename:'File'};
-  document.getElementById('ai-summary-filename').textContent=file.filename;
-  document.getElementById('ai-summary-body').innerHTML='<p style="color:var(--text3);font-family:var(--mono)">Generating summary…</p>';
-  openModal('modal-ai-summary');
-  try{
-    const r=await apiFetch(`/ai/summarize/${previewFileId}`,{method:'POST'});
-    const d=await r.json();
-    if(!r.ok){document.getElementById('ai-summary-body').textContent=d.detail||'Failed to generate summary';return;}
-    document.getElementById('ai-summary-body').textContent=d.summary||d.detail||'No summary returned';
-  }catch(e){document.getElementById('ai-summary-body').textContent='Error contacting AI service';}
-}
 
 // ═══════════════════════════════════
 // PROJECTS
@@ -1760,13 +1694,13 @@ async function loadProjectMembers(){
       <div class="member-row">
         <div class="member-av">${(m.username||'?')[0].toUpperCase()}</div>
         <div class="member-name">${escHtml(m.username)}<small>joined ${fmtDate(m.joined_at)}</small></div>
-        ${currentProjectRole==='owner'&&m.id!==currentUserId?
-          `<select class="member-role-sel" onchange="changeMemberRole(${m.id},this.value)">
+        ${currentProjectRole==='owner'&&m.user_id!==currentUserId?
+          `<select class="member-role-sel" onchange="changeMemberRole(${m.user_id},this.value)">
             <option value="viewer" ${m.role==='viewer'?'selected':''}>Viewer</option>
             <option value="editor" ${m.role==='editor'?'selected':''}>Editor</option>
             <option value="owner" ${m.role==='owner'?'selected':''}>Owner</option>
           </select>
-          <div class="icon-btn danger" onclick="removeMember(${m.id},'${escHtml(m.username)}')">
+          <div class="icon-btn danger" onclick="removeMember(${m.user_id},'${escHtml(m.username)}')">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></div>`
           :`<span class="role-chip ${m.role}">${m.role}</span>`}
       </div>`).join('');
@@ -1779,10 +1713,9 @@ async function doInviteMember(){
   if(!username)return;
   try{
     const r=await apiFetch(`/projects/${psProjectId}/members`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username,role})});
-    const d=await r.json();
-    if(!r.ok){toast(d.detail||'Failed','error');return;}
-    toast(`Invitation sent to ${username}`,'success');
-    document.getElementById('ps-invite-user').value='';
+    if(!r.ok){const d=await r.json();toast(d.detail||'Failed','error');return;}
+    toast(`${username} invited`,'success');document.getElementById('ps-invite-user').value='';
+    await loadProjectMembers();await fetchAllProjects();
   }catch(e){toast('Error','error');}
 }
 
@@ -1860,8 +1793,9 @@ function setView(v){currentView=v;document.getElementById('btn-grid').classList.
 function openModal(id){document.getElementById(id).classList.add('open');}
 function closeModal(id){document.getElementById(id).classList.remove('open');}
 document.querySelectorAll('.modal-backdrop').forEach(bd=>bd.addEventListener('click',e=>{if(e.target===bd)bd.classList.remove('open');}));
-document.addEventListener('click',e=>{
-  if(ctxJustOpened){ctxJustOpened=false;return;}
+document.addEventListener('mousedown',e=>{
+  const menu=document.getElementById('ctx-menu');
+  if(menu&&menu.contains(e.target))return;
   closeCtx();
   const chip=document.getElementById('user-chip');
   if(chip&&!chip.contains(e.target))document.getElementById('user-dropdown').classList.remove('open');
@@ -1901,28 +1835,6 @@ function fileIcon(filename,mime){
 // INIT
 // ═══════════════════════════════════
 if(token)startApp();
-
-// ═══════════════════════════════════
-// THEME
-// ═══════════════════════════════════
-const THEMES=['dark','light','blue'];
-const THEME_ICONS={
-  dark:'<circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>',
-  light:'<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>',
-  blue:'<circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/>'
-};
-let currentTheme=localStorage.getItem('clote_theme')||'dark';
-function applyTheme(t){
-  document.documentElement.setAttribute('data-theme',t==='dark'?'':t);
-  document.getElementById('theme-icon').innerHTML=THEME_ICONS[t]||THEME_ICONS.dark;
-  localStorage.setItem('clote_theme',t);
-}
-function cycleTheme(){
-  currentTheme=THEMES[(THEMES.indexOf(currentTheme)+1)%THEMES.length];
-  applyTheme(currentTheme);
-  toast(`Theme: ${currentTheme}`,'info');
-}
-applyTheme(currentTheme);
 </script>
 </body>
 </html>

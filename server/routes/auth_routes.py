@@ -139,8 +139,19 @@ def send_register_otp(body: RegisterOTPBody):
 def register(body: RegisterBody):
     if not body.username.strip():
         raise HTTPException(status_code=400, detail="Username cannot be empty")
-    if len(body.password) < 4:
-        raise HTTPException(status_code=400, detail="Password must be at least 4 characters")
+
+    # Password complexity rules
+    pwd = body.password
+    if len(pwd) < 8:
+        raise HTTPException(status_code=400, detail="Password must be at least 8 characters")
+    if not any(c.isupper() for c in pwd):
+        raise HTTPException(status_code=400, detail="Password must contain at least one uppercase letter")
+    if not any(c.islower() for c in pwd):
+        raise HTTPException(status_code=400, detail="Password must contain at least one lowercase letter")
+    if not any(c.isdigit() for c in pwd):
+        raise HTTPException(status_code=400, detail="Password must contain at least one number")
+    if not any(c in "!@#$%^&*()_+-=[]{}|;:,.<>?" for c in pwd):
+        raise HTTPException(status_code=400, detail="Password must contain at least one special character (!@#$%^&* etc.)")
 
     conn = get_db()
     try:
@@ -150,22 +161,7 @@ def register(body: RegisterBody):
         if existing:
             raise HTTPException(status_code=409, detail="Username already taken")
 
-        # If email provided, OTP must be valid
-        if body.email and not body.dry_run:
-            if not body.otp:
-                raise HTTPException(status_code=400, detail="OTP is required when email is provided")
-            record = conn.execute(
-                """SELECT * FROM otps WHERE email=? AND purpose='register' AND used=0
-                   ORDER BY created_at DESC LIMIT 1""",
-                (body.email,)
-            ).fetchone()
-            if not record:
-                raise HTTPException(status_code=400, detail="Invalid or expired OTP — request a new one")
-            if datetime.utcnow() > datetime.strptime(record["expires_at"], "%Y-%m-%d %H:%M:%S"):
-                raise HTTPException(status_code=400, detail="OTP expired — request a new one")
-            if record["otp_hash"] != _hash_otp(body.otp):
-                raise HTTPException(status_code=400, detail="Incorrect OTP")
-            conn.execute("UPDATE otps SET used=1 WHERE id=?", (record["id"],))
+        # Email is optional — saved as-is for password reset later, no OTP required at registration
 
         if body.dry_run:
             return {"detail": "OK"}

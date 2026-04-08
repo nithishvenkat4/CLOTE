@@ -381,6 +381,79 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--s
 .pinned-section{margin-bottom:16px}
 .pinned-header{font-size:10px;color:var(--text3);font-family:var(--mono);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px;padding:0 2px;display:flex;align-items:center;gap:6px}
 
+/* ── SUBFOLDER TREE ── */
+.tree-children{padding-left:14px;border-left:1px solid var(--border);margin-left:11px}
+.tree-item-row{display:flex;align-items:center;gap:0;position:relative}
+.tree-expand{width:16px;height:16px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text3);flex-shrink:0;border-radius:3px;transition:var(--transition);background:none;border:none;padding:0}
+.tree-expand:hover{color:var(--accent)}
+.tree-expand svg{width:10px;height:10px;transition:transform 0.15s}
+.tree-expand.open svg{transform:rotate(90deg)}
+.folder-color-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-right:2px}
+
+/* ── FOLDER COLORS ── */
+.folder-icon-picker{display:flex;flex-wrap:wrap;gap:8px;padding:8px 0}
+.folder-color-swatch{width:26px;height:26px;border-radius:6px;cursor:pointer;border:2px solid transparent;transition:var(--transition);display:flex;align-items:center;justify-content:center;font-size:14px}
+.folder-color-swatch:hover,.folder-color-swatch.active{border-color:var(--text);transform:scale(1.1)}
+.folder-emoji-picker{display:flex;flex-wrap:wrap;gap:6px;padding:4px 0}
+.folder-emoji-opt{font-size:18px;cursor:pointer;padding:4px 6px;border-radius:6px;border:2px solid transparent;transition:var(--transition)}
+.folder-emoji-opt:hover,.folder-emoji-opt.active{border-color:var(--accent);background:var(--accent-glow)}
+
+/* ── NOTIFICATION BELL ── */
+.notif-bell{position:relative;cursor:pointer;display:flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:var(--radius-sm);background:var(--surface2);border:1px solid var(--border);transition:var(--transition)}
+.notif-bell:hover{border-color:var(--accent)}
+.notif-bell svg{width:15px;height:15px;color:var(--text2)}
+.notif-badge{position:absolute;top:-4px;right:-4px;background:var(--danger);color:#fff;font-size:9px;font-family:var(--mono);font-weight:700;padding:1px 4px;border-radius:99px;min-width:16px;text-align:center;display:none}
+.notif-badge.visible{display:block}
+.notif-dropdown{position:absolute;top:calc(100% + 8px);right:0;width:320px;background:var(--surface);border:1px solid var(--border2);border-radius:var(--radius);box-shadow:0 16px 40px rgba(0,0,0,0.5);z-index:700;display:none;flex-direction:column;overflow:hidden;max-height:400px}
+.notif-dropdown.open{display:flex;animation:fadeIn 0.12s ease}
+.notif-header{padding:12px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.notif-header-title{font-size:12px;font-weight:600;color:var(--text)}
+.notif-mark-read{font-size:10px;color:var(--accent);cursor:pointer;font-family:var(--mono)}
+.notif-mark-read:hover{text-decoration:underline}
+.notif-list{overflow-y:auto;flex:1}
+.notif-item{display:flex;gap:10px;padding:10px 14px;border-bottom:1px solid var(--border);cursor:pointer;transition:var(--transition)}
+.notif-item:hover{background:var(--surface2)}
+.notif-item.unread{background:var(--accent-glow)}
+.notif-item:last-child{border-bottom:none}
+.notif-dot{width:7px;height:7px;border-radius:50%;background:var(--accent);flex-shrink:0;margin-top:5px}
+.notif-dot.read{background:transparent;border:1px solid var(--border2)}
+.notif-content{flex:1;min-width:0}
+.notif-text{font-size:12px;color:var(--text);line-height:1.4}
+.notif-time{font-size:10px;color:var(--text3);font-family:var(--mono);margin-top:3px}
+.notif-empty{padding:24px;text-align:center;color:var(--text3);font-size:12px;font-family:var(--mono)}
+
+/* ── COMMAND PALETTE ── */
+.cmd-backdrop{position:fixed;inset:0;z-index:1100;background:rgba(0,0,0,0.6);backdrop-filter:blur(6px);display:none;align-items:flex-start;justify-content:center;padding-top:15vh}
+.cmd-backdrop.open{display:flex;animation:fadeIn 0.1s ease}
+.cmd-palette{background:var(--surface);border:1px solid var(--border2);border-radius:14px;width:560px;max-width:96vw;box-shadow:0 40px 80px rgba(0,0,0,0.6);overflow:hidden}
+.cmd-input-wrap{display:flex;align-items:center;gap:10px;padding:14px 18px;border-bottom:1px solid var(--border)}
+.cmd-input-wrap svg{width:16px;height:16px;color:var(--text3);flex-shrink:0}
+.cmd-input{background:none;border:none;outline:none;color:var(--text);font-family:var(--sans);font-size:14px;flex:1}
+.cmd-input::placeholder{color:var(--text3)}
+.cmd-shortcut-hint{font-size:10px;font-family:var(--mono);color:var(--text3);background:var(--surface2);border:1px solid var(--border);padding:2px 6px;border-radius:4px;flex-shrink:0}
+.cmd-results{max-height:340px;overflow-y:auto}
+.cmd-section{padding:6px 14px 2px;font-size:10px;color:var(--text3);font-family:var(--mono);text-transform:uppercase;letter-spacing:.08em}
+.cmd-item{display:flex;align-items:center;gap:12px;padding:10px 18px;cursor:pointer;transition:var(--transition)}
+.cmd-item:hover,.cmd-item.cmd-active{background:var(--surface2)}
+.cmd-item-icon{width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;background:var(--surface3)}
+.cmd-item-text{flex:1;min-width:0}
+.cmd-item-label{font-size:13px;color:var(--text)}
+.cmd-item-sub{font-size:11px;color:var(--text3);font-family:var(--mono)}
+.cmd-item-kbd{font-size:10px;font-family:var(--mono);color:var(--text3);background:var(--surface3);border:1px solid var(--border);padding:1px 5px;border-radius:3px;flex-shrink:0}
+.cmd-empty{padding:28px;text-align:center;color:var(--text3);font-size:13px}
+
+/* ── IMAGE THUMBNAILS ── */
+.file-thumb{width:100%;height:76px;object-fit:cover;border-radius:6px;margin-bottom:2px}
+
+/* ── FILE NOTES ── */
+.note-textarea{width:100%;background:var(--surface2);border:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:12px;padding:10px;border-radius:var(--radius-sm);outline:none;resize:vertical;min-height:100px;transition:var(--transition)}
+.note-textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-glow)}
+.note-indicator{font-size:10px;color:var(--warning);margin-left:4px}
+
+/* ── ZIP DOWNLOAD ── */
+.zip-progress{height:4px;background:var(--surface3);border-radius:99px;overflow:hidden;margin-top:8px;display:none}
+.zip-progress-fill{height:100%;background:var(--accent);border-radius:99px;transition:width 0.3s ease;width:0%}
+
 /* ── VERSION DIFF ── */
 .diff-view{display:grid;grid-template-columns:1fr 1fr;gap:12px;max-height:480px;overflow-y:auto}
 .diff-col{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);overflow:auto}
@@ -472,6 +545,20 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--s
         <span class="theme-icon" id="theme-icon">🌙</span>
         <div class="theme-toggle-knob"></div>
       </div>
+      <!-- NOTIFICATION BELL -->
+      <div class="notif-bell" id="notif-bell" onclick="toggleNotifDropdown(event)" title="Notifications">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+        <div class="notif-badge" id="notif-badge"></div>
+        <div class="notif-dropdown" id="notif-dropdown">
+          <div class="notif-header">
+            <span class="notif-header-title">Notifications</span>
+            <span class="notif-mark-read" onclick="markAllNotifRead(event)">Mark all read</span>
+          </div>
+          <div class="notif-list" id="notif-list">
+            <div class="notif-empty">No notifications</div>
+          </div>
+        </div>
+      </div>
       <div class="user-chip" id="user-chip" onclick="toggleUserMenu(event)">
         <div class="user-avatar" id="user-avatar">?</div>
         <span id="username-display">user</span>
@@ -554,6 +641,10 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--s
           <button class="tb-btn" onclick="toggleActivityPanel()" title="Toggle Activity Feed">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:13px;height:13px"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
           </button>
+          <button class="tb-btn" onclick="openCmd()" title="Command Palette (Ctrl+K)" style="font-family:var(--mono);font-size:11px;gap:4px">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:13px;height:13px"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg>
+            <span style="font-size:10px;opacity:0.7">Ctrl+K</span>
+          </button>
         </div>
       </div>
 
@@ -563,9 +654,13 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--s
         <button class="tb-btn" onclick="bulkMove()">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="5 9 2 12 5 15"/><polyline points="9 5 12 2 15 5"/><line x1="2" y1="12" x2="22" y2="12"/><line x1="12" y1="2" x2="12" y2="22"/></svg>Move
         </button>
+        <button class="tb-btn" onclick="bulkDownloadZip()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>ZIP
+        </button>
         <button class="tb-btn danger" onclick="bulkTrash()" style="color:var(--danger);border-color:var(--danger)">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>Trash
         </button>
+        <div class="zip-progress" id="zip-progress"><div class="zip-progress-fill" id="zip-fill"></div></div>
         <button class="tb-btn" onclick="clearSelection()" style="margin-left:auto">Cancel</button>
       </div>
 
@@ -627,6 +722,12 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--s
   </div>
   <div class="ctx-item" id="ctx-label" onclick="ctxAction('label')">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>Add Label
+  </div>
+  <div class="ctx-item" id="ctx-note" onclick="ctxAction('note')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>Add Note
+  </div>
+  <div class="ctx-item" id="ctx-folder-custom" onclick="ctxAction('folder-custom')" style="display:none">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>Customise Folder
   </div>
   <div class="ctx-item" id="ctx-share" onclick="ctxAction('share')">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>Share Link
@@ -906,7 +1007,51 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--s
 
 <div id="toast-container"></div>
 
-<!-- TEXT EDITOR -->
+<!-- COMMAND PALETTE -->
+<div class="cmd-backdrop" id="cmd-backdrop" onclick="if(event.target===this)closeCmd()">
+  <div class="cmd-palette">
+    <div class="cmd-input-wrap">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input class="cmd-input" id="cmd-input" placeholder="Search files, run actions…" oninput="onCmdInput(this.value)" onkeydown="onCmdKey(event)" autocomplete="off"/>
+      <span class="cmd-shortcut-hint">ESC</span>
+    </div>
+    <div class="cmd-results" id="cmd-results"></div>
+  </div>
+</div>
+
+<!-- FOLDER CUSTOMISE MODAL -->
+<div class="modal-backdrop" id="modal-folder-custom">
+  <div class="modal sm"><div class="modal-title">Customise Folder</div>
+    <div class="modal-body">
+      <div class="modal-label">Color</div>
+      <div class="folder-icon-picker" id="folder-color-picker"></div>
+      <div class="modal-label" style="margin-top:8px">Icon</div>
+      <div class="folder-emoji-picker" id="folder-emoji-picker"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-ghost" onclick="closeModal('modal-folder-custom')">Cancel</button>
+      <button class="btn-ghost" onclick="resetFolderCustom()">Reset</button>
+      <button class="btn-primary" onclick="saveFolderCustom()">Apply</button>
+    </div>
+  </div>
+</div>
+
+<!-- FILE NOTE MODAL -->
+<div class="modal-backdrop" id="modal-note">
+  <div class="modal"><div class="modal-title">📝 File Note — <span id="note-filename" style="color:var(--accent);font-weight:400"></span></div>
+    <div class="modal-body">
+      <textarea class="note-textarea" id="note-textarea" placeholder="Add a note about this file…"></textarea>
+      <div style="font-size:11px;color:var(--text3);font-family:var(--mono)">Notes are stored locally on this device.</div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-ghost" onclick="closeModal('modal-note')">Cancel</button>
+      <button class="btn-ghost" onclick="clearFileNote()">Clear</button>
+      <button class="btn-primary" onclick="saveFileNote()">Save Note</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST CONTAINER -->
 <div class="editor-backdrop" id="editor-backdrop">
   <div class="editor-topbar">
     <div class="editor-title" id="editor-title">Untitled</div>
@@ -1162,8 +1307,8 @@ function startApp(){
   document.getElementById('user-avatar').textContent=(currentUser||'?')[0].toUpperCase();
   document.getElementById('dd-email').textContent=currentEmail||'CLOTE account';
   applyTheme(currentTheme);
-  // Apply activity panel collapsed state
   if(activityCollapsed)document.getElementById('activity-panel').classList.add('collapsed');
+  renderNotifBadge();
   loadAll();
 }
 
@@ -1292,6 +1437,8 @@ function renderItems(){
   }
   if(currentView==='grid')renderGrid(folders,files,container);
   else renderList(folders,files,container);
+  // Load image thumbnails with auth after DOM is ready
+  setTimeout(loadImageThumbnails, 50);
 }
 
 function renderGrid(folders,files,container){
@@ -1310,12 +1457,15 @@ function renderGrid(folders,files,container){
   }
   h+=`<div class="file-grid">`;
   folders.forEach(f=>{
-    h+=`<div class="file-card" ondblclick="navFolder(${f.id},'${escHtml(f.name)}')" oncontextmenu="showCtx(event,'folder',${f.id},'${escHtml(f.name)}')">
+    const fc=getFolderCustom(f.id);
+    const fEmoji=fc.emoji||'📁';
+    const fColor=fc.color?`border-left: 3px solid ${fc.color};`:'';
+    h+=`<div class="file-card" style="${fColor}" ondblclick="navFolder(${f.id},'${escHtml(f.name)}')" oncontextmenu="showCtx(event,'folder',${f.id},'${escHtml(f.name)}')">
       <div class="card-check ${selectedIds.has('f'+f.id)?'checked':''}" onclick="event.stopPropagation();toggleSelect('f'+${f.id},this)">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>
       <div class="ctx-btn" onclick="event.stopPropagation();showCtx(event,'folder',${f.id},'${escHtml(f.name)}')">⋯</div>
-      <div class="file-icon" style="background:rgba(167,139,250,0.14);color:var(--project)">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="width:22px;height:22px"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg></div>
+      <div class="file-icon" style="background:${fc.color?fc.color+'22':'rgba(167,139,250,0.14)'};color:${fc.color||'var(--project)'}">
+        <span style="font-size:22px">${fEmoji}</span></div>
       <div class="file-name">${escHtml(f.name)}</div>
       <div class="file-meta">folder</div></div>`;
   });
@@ -1327,6 +1477,13 @@ function renderFileCard(f,tags,starred){
   const ic=fileIcon(f.filename,f.mime_type);
   const tag=tags[f.id];
   const isStarredFile=starred.includes(f.id);
+  const notes=getNotes();
+  const hasNote=!!notes[f.id];
+  const mime=f.mime_type||'';
+  const isImage=mime.startsWith('image/');
+  const thumbHtml=isImage
+    ?`<img class="file-thumb" data-fileid="${f.id}" src="" alt="" loading="lazy"/>`
+    :`<div class="file-icon" style="${ic.style}">${ic.emoji}</div>`;
   return`<div class="file-card ${selectedIds.has('file'+f.id)?'selected':''}" onclick="handleFileClick(event,${f.id})" oncontextmenu="showCtx(event,'file',${f.id},'${escHtml(f.filename)}','${f.mime_type||""}')">
     <div class="card-check ${selectedIds.has('file'+f.id)?'checked':''}" onclick="event.stopPropagation();toggleSelect('file'+${f.id},this)">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>
@@ -1334,8 +1491,8 @@ function renderFileCard(f,tags,starred){
     <div class="star-btn ${isStarredFile?'starred':''}" onclick="toggleStar(event,${f.id})" title="${isStarredFile?'Unpin':'Pin'}">
       <svg viewBox="0 0 24 24" fill="${isStarredFile?'currentColor':'none'}" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
     </div>
-    <div class="file-icon" style="${ic.style}">${ic.emoji}</div>
-    <div class="file-name">${escHtml(f.filename)}</div>
+    ${thumbHtml}
+    <div class="file-name">${escHtml(f.filename)}${hasNote?'<span class="note-indicator" title="Has note">📝</span>':''}</div>
     <div class="file-meta">v${f.current_version} · ${fmtSize(f.size_bytes)}</div>
     ${tag?`<div class="file-tags"><span class="file-tag ${tag.color}">${escHtml(tag.label||tag.color)}</span></div>`:''}
   </div>`;
@@ -1347,11 +1504,14 @@ function renderList(folders,files,container){
   let h=`<div class="file-list-view">
     <div class="list-header"><div class="lh-check"></div><div class="lh-name">Name</div><div class="lh-size">Size</div><div class="lh-date">Modified</div></div>`;
   folders.forEach(f=>{
+    const fc=getFolderCustom(f.id);
+    const fEmoji=fc.emoji||'📁';
+    const fBg=fc.color?fc.color+'22':'rgba(167,139,250,0.14)';
+    const fClr=fc.color||'var(--project)';
     h+=`<div class="list-item" ondblclick="navFolder(${f.id},'${escHtml(f.name)}')" oncontextmenu="showCtx(event,'folder',${f.id},'${escHtml(f.name)}')">
       <div class="list-check ${selectedIds.has('f'+f.id)?'checked':''}" onclick="event.stopPropagation();toggleSelect('f'+${f.id},this)">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>
-      <div class="list-fi" style="background:rgba(167,139,250,0.14);color:var(--project)">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg></div>
+      <div class="list-fi" style="background:${fBg};color:${fClr};font-size:16px">${fEmoji}</div>
       <div class="list-name">${escHtml(f.name)}</div>
       <div class="list-size">—</div>
       <div class="list-date">${fmtDate(f.created_at)}</div>
@@ -1518,6 +1678,14 @@ function showCtx(e,type,id,name,mime){
   // Diff button for files
   const diffBtn=document.getElementById('ctx-diff');
   if(diffBtn)diffBtn.style.display=isFile?'':'none';
+  // Note and label only for files
+  const noteBtn=document.getElementById('ctx-note');
+  if(noteBtn)noteBtn.style.display=isFile?'':'none';
+  const labelBtn=document.getElementById('ctx-label');
+  if(labelBtn)labelBtn.style.display=isFile?'':'none';
+  // Folder customise only for folders
+  const fcBtn=document.getElementById('ctx-folder-custom');
+  if(fcBtn)fcBtn.style.display=type==='folder'?'':'none';
   // Measure using visibility:hidden so CSS display:block kicks in without showing it
   m.style.visibility='hidden';
   m.classList.add('open');
@@ -1564,6 +1732,8 @@ function ctxAction(action){
   else if(action==='edit')openEditor(id);
   else if(action==='label')openTagModal(id);
   else if(action==='diff')openDiff(id,name);
+  else if(action==='note')openNoteModal(id,name);
+  else if(action==='folder-custom')openFolderCustomModal(id);
 }
 
 // ═══════════════════════════════════
@@ -1583,6 +1753,7 @@ async function doUpload(){
     }
   }
   toast(`Uploaded ${done}/${inp.files.length} file(s)`,'success');
+  if(done>0)addNotif(`Uploaded ${done} file(s) successfully`,'upload');
   closeModal('modal-upload');inp.value='';
   document.getElementById('upload-drop-label').textContent='';
   loadView();loadActivityFeed();
@@ -1600,6 +1771,11 @@ async function doCreateFolder(){
     toast('Folder created','success');closeModal('modal-new-folder');
     document.getElementById('new-folder-input').value='';
     await fetchAllPersonalFolders();loadView();
+    // Auto-expand parent in sidebar if creating subfolder
+    if(currentFolderId){
+      localStorage.setItem(`clote_tree_open_${currentFolderId}`,'1');
+      renderPersonalTree();
+    }
   }catch(e){toast('Error','error');}
 }
 
@@ -1970,11 +2146,49 @@ function renderProjectsSidebar(){
 function renderPersonalTree(){
   const el=document.getElementById('personal-tree');
   const roots=allPersonalFolders.filter(f=>!f.parent_id);
-  el.innerHTML=roots.map(f=>`
-    <div class="tree-item" onclick="navFolder(${f.id},'${escHtml(f.name)}')">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
-      <span class="item-name">${escHtml(f.name)}</span>
-    </div>`).join('');
+  el.innerHTML=roots.map(f=>renderFolderTreeItem(f,0)).join('');
+}
+
+function getFolderCustom(id){return JSON.parse(localStorage.getItem('clote_foldercustom')||'{}')[id]||{};}
+function setFolderCustomAll(obj){localStorage.setItem('clote_foldercustom',JSON.stringify(obj));}
+function setFolderCustom(id,data){const all=JSON.parse(localStorage.getItem('clote_foldercustom')||'{}');all[id]=data;setFolderCustomAll(all);}
+
+const FOLDER_COLORS_LIST=['#5b8cff','#a78bfa','#4dffa0','#ffb84d','#ff5b72','#22d3ee','#f472b6','#94a3b8'];
+const FOLDER_EMOJIS=['📁','📂','🗂️','💼','📦','⭐','🔵','🟢','🔴','🟡','💡','🔒','🚀','📸','🎵','📊'];
+
+function renderFolderTreeItem(f,depth){
+  const children=allPersonalFolders.filter(c=>c.parent_id===f.id);
+  const hasChildren=children.length>0;
+  const custom=getFolderCustom(f.id);
+  const color=custom.color||'';
+  const emoji=custom.emoji||'📁';
+  const expandKey=`clote_tree_open_${f.id}`;
+  const isOpen=localStorage.getItem(expandKey)==='1';
+  return`<div>
+    <div class="tree-item-row">
+      <button class="tree-expand ${hasChildren?(isOpen?'open':''):''}" style="visibility:${hasChildren?'visible':'hidden'}"
+        onclick="toggleTreeFolder(${f.id},this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+      </button>
+      <div class="tree-item" style="flex:1;padding-left:2px" onclick="navFolder(${f.id},'${escHtml(f.name)}')" oncontextmenu="showCtx(event,'folder',${f.id},'${escHtml(f.name)}')">
+        ${color?`<div class="folder-color-dot" style="background:${color}"></div>`:''}
+        <span style="font-size:14px;line-height:1">${emoji}</span>
+        <span class="item-name">${escHtml(f.name)}</span>
+      </div>
+    </div>
+    ${hasChildren&&isOpen?`<div class="tree-children" id="tree-children-${f.id}">${children.map(c=>renderFolderTreeItem(c,depth+1)).join('')}</div>`:''}
+    ${!isOpen&&hasChildren?`<div class="tree-children" id="tree-children-${f.id}" style="display:none">${children.map(c=>renderFolderTreeItem(c,depth+1)).join('')}</div>`:''}
+  </div>`;
+}
+
+function toggleTreeFolder(folderId,btn){
+  const key=`clote_tree_open_${folderId}`;
+  const isOpen=localStorage.getItem(key)==='1';
+  localStorage.setItem(key,isOpen?'0':'1');
+  btn.classList.toggle('open',!isOpen);
+  const children=document.getElementById(`tree-children-${folderId}`);
+  if(children)children.style.display=isOpen?'none':'';
+  else renderPersonalTree();
 }
 
 function openCreateProjectModal(){document.getElementById('proj-name-input').value='';document.getElementById('proj-desc-input').value='';openModal('modal-create-project');}
@@ -2530,6 +2744,328 @@ function drawDonut(canvasId,segments){
   ctx.beginPath();ctx.arc(cx,cy,ir,0,Math.PI*2);
   ctx.fillStyle=getComputedStyle(document.documentElement).getPropertyValue('--surface').trim()||'#141720';
   ctx.fill();
+}
+
+// ═══════════════════════════════════
+// NOTIFICATIONS
+// ═══════════════════════════════════
+let notifications=JSON.parse(localStorage.getItem('clote_notifs')||'[]');
+let notifDropOpen=false;
+
+function saveNotifs(){localStorage.setItem('clote_notifs',JSON.stringify(notifications));}
+
+function addNotif(text,type='info'){
+  notifications.unshift({id:Date.now(),text,type,time:new Date().toISOString(),read:false});
+  if(notifications.length>50)notifications=notifications.slice(0,50);
+  saveNotifs();renderNotifBadge();
+}
+
+function renderNotifBadge(){
+  const unread=notifications.filter(n=>!n.read).length;
+  const badge=document.getElementById('notif-badge');
+  if(!badge)return;
+  badge.textContent=unread>9?'9+':unread||'';
+  badge.classList.toggle('visible',unread>0);
+}
+
+function toggleNotifDropdown(e){
+  e.stopPropagation();
+  const dd=document.getElementById('notif-dropdown');
+  notifDropOpen=!notifDropOpen;
+  dd.classList.toggle('open',notifDropOpen);
+  if(notifDropOpen)renderNotifList();
+}
+
+function renderNotifList(){
+  const el=document.getElementById('notif-list');
+  if(!notifications.length){el.innerHTML='<div class="notif-empty">No notifications yet</div>';return;}
+  const typeIcon={info:'ℹ️',success:'✅',error:'❌',share:'🔗',invite:'👋',upload:'📤'};
+  el.innerHTML=notifications.map(n=>`
+    <div class="notif-item ${n.read?'':'unread'}" onclick="markNotifRead(${n.id})">
+      <div class="notif-dot ${n.read?'read':''}"></div>
+      <div class="notif-content">
+        <div class="notif-text">${typeIcon[n.type]||'🔔'} ${escHtml(n.text)}</div>
+        <div class="notif-time">${fmtDate(n.time)}</div>
+      </div>
+    </div>`).join('');
+}
+
+function markNotifRead(id){
+  const n=notifications.find(n=>n.id===id);
+  if(n)n.read=true;
+  saveNotifs();renderNotifBadge();renderNotifList();
+}
+
+function markAllNotifRead(e){
+  e.stopPropagation();
+  notifications.forEach(n=>n.read=true);
+  saveNotifs();renderNotifBadge();renderNotifList();
+}
+
+// Hook notifications into existing actions
+const _origToast=window.toast;
+
+// ═══════════════════════════════════
+// FOLDER CUSTOMISE
+// ═══════════════════════════════════
+let folderCustomTarget=null;let folderCustomColor=null;let folderCustomEmoji=null;
+
+function openFolderCustomModal(folderId){
+  folderCustomTarget=folderId;
+  const existing=getFolderCustom(folderId);
+  folderCustomColor=existing.color||null;
+  folderCustomEmoji=existing.emoji||'📁';
+  const cp=document.getElementById('folder-color-picker');
+  cp.innerHTML=FOLDER_COLORS_LIST.map(c=>`
+    <div class="folder-color-swatch ${existing.color===c?'active':''}" style="background:${c}" onclick="selectFolderColor('${c}',this)"></div>`).join('');
+  const ep=document.getElementById('folder-emoji-picker');
+  ep.innerHTML=FOLDER_EMOJIS.map(em=>`
+    <div class="folder-emoji-opt ${existing.emoji===em?'active':''}" onclick="selectFolderEmoji('${em}',this)">${em}</div>`).join('');
+  openModal('modal-folder-custom');
+}
+
+function selectFolderColor(color,el){
+  folderCustomColor=color;
+  document.querySelectorAll('.folder-color-swatch').forEach(s=>s.classList.remove('active'));
+  el.classList.add('active');
+}
+
+function selectFolderEmoji(emoji,el){
+  folderCustomEmoji=emoji;
+  document.querySelectorAll('.folder-emoji-opt').forEach(s=>s.classList.remove('active'));
+  el.classList.add('active');
+}
+
+function saveFolderCustom(){
+  if(!folderCustomTarget)return;
+  setFolderCustom(folderCustomTarget,{color:folderCustomColor,emoji:folderCustomEmoji||'📁'});
+  closeModal('modal-folder-custom');
+  renderPersonalTree();renderItems();
+  toast('Folder customised','success');
+}
+
+function resetFolderCustom(){
+  if(!folderCustomTarget)return;
+  const all=JSON.parse(localStorage.getItem('clote_foldercustom')||'{}');
+  delete all[folderCustomTarget];
+  setFolderCustomAll(all);
+  closeModal('modal-folder-custom');
+  renderPersonalTree();renderItems();
+}
+
+// ═══════════════════════════════════
+// FILE NOTES
+// ═══════════════════════════════════
+let noteTargetId=null;
+function getNotes(){return JSON.parse(localStorage.getItem('clote_notes')||'{}');}
+function setNotes(obj){localStorage.setItem('clote_notes',JSON.stringify(obj));}
+
+function openNoteModal(fileId,filename){
+  noteTargetId=fileId;
+  document.getElementById('note-filename').textContent=filename;
+  const notes=getNotes();
+  document.getElementById('note-textarea').value=notes[fileId]||'';
+  openModal('modal-note');
+}
+
+function saveFileNote(){
+  if(!noteTargetId)return;
+  const txt=document.getElementById('note-textarea').value.trim();
+  const notes=getNotes();
+  if(txt)notes[noteTargetId]=txt;else delete notes[noteTargetId];
+  setNotes(notes);
+  closeModal('modal-note');
+  renderItems();
+  toast('Note saved','success');
+}
+
+function clearFileNote(){
+  if(!noteTargetId)return;
+  const notes=getNotes();
+  delete notes[noteTargetId];
+  setNotes(notes);
+  closeModal('modal-note');
+  renderItems();
+}
+
+// ═══════════════════════════════════
+// ZIP DOWNLOAD (JSZip CDN)
+// ═══════════════════════════════════
+async function bulkDownloadZip(){
+  const ids=getSelectedFileIds();
+  if(!ids.length){toast('Select files first','error');return;}
+  // Load JSZip dynamically
+  if(!window.JSZip){
+    toast('Loading ZIP library…','info');
+    await new Promise((res,rej)=>{
+      const s=document.createElement('script');
+      s.src='https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js';
+      s.onload=res;s.onerror=rej;document.head.appendChild(s);
+    });
+  }
+  const prog=document.getElementById('zip-progress');
+  const fill=document.getElementById('zip-fill');
+  prog.style.display='block';fill.style.width='0%';
+  const zip=new JSZip();
+  let done=0;
+  for(const id of ids){
+    try{
+      const file=currentFiles.find(f=>f.id===id);
+      const r=await apiFetch(`/files/${id}/download`);
+      if(r.ok){
+        const blob=await r.blob();
+        zip.file(file?.filename||`file_${id}`,blob);
+      }
+    }catch(e){}
+    done++;fill.style.width=`${(done/ids.length)*100}%`;
+  }
+  const blob=await zip.generateAsync({type:'blob'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');a.href=url;a.download=`clote_files_${Date.now()}.zip`;a.click();
+  setTimeout(()=>URL.revokeObjectURL(url),2000);
+  prog.style.display='none';
+  toast(`Downloaded ${done} file(s) as ZIP`,'success');
+  addNotif(`Downloaded ${done} files as ZIP`,'success');
+}
+
+// ═══════════════════════════════════
+// COMMAND PALETTE
+// ═══════════════════════════════════
+let cmdOpen=false;let cmdActiveIdx=0;let cmdItems=[];
+
+const CMD_ACTIONS=[
+  {label:'Upload Files',sub:'Add files to current folder',icon:'📤',kbd:'U',action:()=>openUploadModal()},
+  {label:'New Folder',sub:'Create a folder here',icon:'📁',kbd:'N',action:()=>openNewFolderModal()},
+  {label:'Search Files',sub:'Focus search bar',icon:'🔍',kbd:'/',action:()=>{document.getElementById('search-input').focus();}},
+  {label:'My Files',sub:'Go to root',icon:'🏠',action:()=>navMyFiles()},
+  {label:'Trash',sub:'Open trash',icon:'🗑️',action:()=>navTrash()},
+  {label:'Toggle Theme',sub:'Switch light / dark',icon:'🌙',action:()=>toggleTheme()},
+  {label:'Storage',sub:'View storage usage',icon:'💾',action:()=>openStorageModal({stopPropagation:()=>{}})},
+  {label:'Audit Log',sub:'View activity log',icon:'📋',action:()=>openAuditModal({stopPropagation:()=>{}})},
+  {label:'Toggle Activity Panel',sub:'Show/hide timeline',icon:'📊',action:()=>toggleActivityPanel()},
+];
+
+function openCmd(){
+  cmdOpen=true;cmdActiveIdx=0;
+  document.getElementById('cmd-backdrop').classList.add('open');
+  document.getElementById('cmd-input').value='';
+  renderCmdResults('');
+  setTimeout(()=>document.getElementById('cmd-input').focus(),50);
+}
+
+function closeCmd(){
+  cmdOpen=false;
+  document.getElementById('cmd-backdrop').classList.remove('open');
+}
+
+function onCmdInput(val){
+  cmdActiveIdx=0;
+  renderCmdResults(val.toLowerCase());
+}
+
+function renderCmdResults(q){
+  const el=document.getElementById('cmd-results');
+  let items=[];
+  // Actions
+  const matchedActions=CMD_ACTIONS.filter(a=>!q||a.label.toLowerCase().includes(q)||a.sub.toLowerCase().includes(q));
+  // Files
+  const matchedFiles=q?currentFiles.filter(f=>(f.filename||'').toLowerCase().includes(q)).slice(0,6):[];
+  // Projects
+  const matchedProjects=q?allProjects.filter(p=>(p.name||'').toLowerCase().includes(q)).slice(0,4):[];
+
+  cmdItems=[];
+  let h='';
+
+  if(matchedActions.length){
+    h+=`<div class="cmd-section">Actions</div>`;
+    matchedActions.forEach(a=>{
+      const idx=cmdItems.length;cmdItems.push({type:'action',data:a});
+      h+=`<div class="cmd-item ${idx===cmdActiveIdx?'cmd-active':''}" onclick="runCmdItem(${idx})">
+        <div class="cmd-item-icon">${a.icon}</div>
+        <div class="cmd-item-text"><div class="cmd-item-label">${escHtml(a.label)}</div><div class="cmd-item-sub">${escHtml(a.sub)}</div></div>
+        ${a.kbd?`<span class="cmd-item-kbd">${a.kbd}</span>`:''}
+      </div>`;
+    });
+  }
+  if(matchedFiles.length){
+    h+=`<div class="cmd-section">Files</div>`;
+    matchedFiles.forEach(f=>{
+      const ic=fileIcon(f.filename,f.mime_type);
+      const idx=cmdItems.length;cmdItems.push({type:'file',data:f});
+      h+=`<div class="cmd-item ${idx===cmdActiveIdx?'cmd-active':''}" onclick="runCmdItem(${idx})">
+        <div class="cmd-item-icon" style="${ic.style}">${ic.emoji}</div>
+        <div class="cmd-item-text"><div class="cmd-item-label">${escHtml(f.filename)}</div><div class="cmd-item-sub">${fmtSize(f.size_bytes)}</div></div>
+      </div>`;
+    });
+  }
+  if(matchedProjects.length){
+    h+=`<div class="cmd-section">Projects</div>`;
+    matchedProjects.forEach(p=>{
+      const idx=cmdItems.length;cmdItems.push({type:'project',data:p});
+      h+=`<div class="cmd-item ${idx===cmdActiveIdx?'cmd-active':''}" onclick="runCmdItem(${idx})">
+        <div class="cmd-item-icon">🗂️</div>
+        <div class="cmd-item-text"><div class="cmd-item-label">${escHtml(p.name)}</div><div class="cmd-item-sub">${p.my_role||'member'}</div></div>
+      </div>`;
+    });
+  }
+  if(!cmdItems.length)h=`<div class="cmd-empty">No results for "${escHtml(q)}"</div>`;
+  el.innerHTML=h;
+}
+
+function onCmdKey(e){
+  if(e.key==='Escape'){closeCmd();return;}
+  if(e.key==='ArrowDown'){e.preventDefault();cmdActiveIdx=Math.min(cmdActiveIdx+1,cmdItems.length-1);renderCmdResults(document.getElementById('cmd-input').value.toLowerCase());}
+  if(e.key==='ArrowUp'){e.preventDefault();cmdActiveIdx=Math.max(cmdActiveIdx-1,0);renderCmdResults(document.getElementById('cmd-input').value.toLowerCase());}
+  if(e.key==='Enter'){e.preventDefault();if(cmdItems[cmdActiveIdx])runCmdItem(cmdActiveIdx);}
+}
+
+function runCmdItem(idx){
+  const item=cmdItems[idx];if(!item)return;
+  closeCmd();
+  if(item.type==='action')item.data.action();
+  else if(item.type==='file')openSidePreview(item.data.id);
+  else if(item.type==='project')navProject(item.data.id);
+}
+
+// Keyboard: Ctrl+K opens palette
+document.addEventListener('keydown',e=>{
+  if((e.ctrlKey||e.metaKey)&&e.key==='k'){e.preventDefault();cmdOpen?closeCmd():openCmd();}
+  if(!cmdOpen&&!document.activeElement?.matches('input,textarea')){
+    if(e.key==='u'||e.key==='U'){const app=document.getElementById('app');if(app.classList.contains('visible'))openUploadModal();}
+    if(e.key==='n'||e.key==='N'){const app=document.getElementById('app');if(app.classList.contains('visible'))openNewFolderModal();}
+    if(e.key==='/'){const app=document.getElementById('app');if(app.classList.contains('visible')){e.preventDefault();document.getElementById('search-input').focus();}}
+  }
+});
+
+// Close notifications on outside click
+document.addEventListener('mousedown',e=>{
+  const bell=document.getElementById('notif-bell');
+  if(bell&&!bell.contains(e.target)){
+    document.getElementById('notif-dropdown').classList.remove('open');
+    notifDropOpen=false;
+  }
+});
+
+// ═══════════════════════════════════
+// IMAGE THUMBNAIL LOADER (auth-aware)
+// ═══════════════════════════════════
+const thumbCache={};
+async function loadImageThumbnails(){
+  const imgs=document.querySelectorAll('img.file-thumb[data-fileid]');
+  for(const img of imgs){
+    const id=parseInt(img.dataset.fileid);
+    if(thumbCache[id]){img.src=thumbCache[id];continue;}
+    try{
+      const r=await apiFetch(`/files/${id}/preview`);
+      if(r.ok){
+        const blob=await r.blob();
+        const url=URL.createObjectURL(blob);
+        thumbCache[id]=url;
+        img.src=url;
+        img.onerror=()=>{img.style.display='none';};
+      }
+    }catch(e){img.style.display='none';}
+  }
 }
 
 // ═══════════════════════════════════

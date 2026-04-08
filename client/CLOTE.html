@@ -18,6 +18,15 @@
   --mono:'JetBrains Mono',monospace;--sans:'Syne',sans-serif;
   --radius:10px;--radius-sm:6px;--transition:0.18s ease;
 }
+[data-theme="light"]{
+  --bg:#f0f2f7;--surface:#ffffff;--surface2:#f5f6fa;--surface3:#eaecf4;
+  --border:#dde1ee;--border2:#c8cde0;
+  --accent:#3d6ff0;--accent2:#6b4ff0;--accent-glow:rgba(61,111,240,0.12);
+  --text:#1a1d2e;--text2:#4a5070;--text3:#8890b0;
+  --danger:#e0334a;--danger-soft:rgba(224,51,74,0.10);
+  --success:#1aab6b;--warning:#d97c10;
+  --project:#7c52e8;--project-soft:rgba(124,82,232,0.12);
+}
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--sans);font-size:14px;overflow:hidden}
 ::-webkit-scrollbar{width:5px;height:5px}
@@ -279,6 +288,113 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--s
 .trash-item{display:flex;align-items:center;gap:12px;padding:10px 14px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--surface);margin-bottom:4px}
 .trash-item-name{flex:1;font-size:13px;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .trash-item-meta{font-size:11px;color:var(--text3);font-family:var(--mono);flex-shrink:0}
+
+/* ── THEME TOGGLE ── */
+.theme-toggle{display:flex;align-items:center;gap:6px;background:var(--surface2);border:1px solid var(--border);border-radius:99px;padding:3px 5px;cursor:pointer;transition:var(--transition)}
+.theme-toggle-knob{width:28px;height:16px;border-radius:99px;background:var(--surface3);position:relative;transition:var(--transition)}
+.theme-toggle-knob::after{content:'';position:absolute;top:2px;left:2px;width:12px;height:12px;border-radius:50%;background:var(--text3);transition:var(--transition)}
+[data-theme="light"] .theme-toggle-knob{background:var(--accent-glow)}
+[data-theme="light"] .theme-toggle-knob::after{left:14px;background:var(--accent)}
+.theme-icon{font-size:13px;line-height:1;user-select:none}
+
+/* ── TEXT EDITOR ── */
+.editor-backdrop{position:fixed;inset:0;z-index:900;display:none;flex-direction:column;background:var(--bg)}
+.editor-backdrop.open{display:flex}
+.editor-topbar{height:52px;background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 16px;gap:10px;flex-shrink:0}
+.editor-title{flex:1;font-family:var(--mono);font-size:13px;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.editor-statusbar{height:28px;background:var(--surface);border-top:1px solid var(--border);display:flex;align-items:center;padding:0 16px;gap:16px;font-size:11px;font-family:var(--mono);color:var(--text3);flex-shrink:0}
+.editor-statusbar span{display:flex;align-items:center;gap:4px}
+.editor-body{flex:1;display:flex;overflow:hidden}
+.editor-gutter{width:48px;background:var(--surface);border-right:1px solid var(--border);padding:12px 0;overflow:hidden;flex-shrink:0;user-select:none}
+.editor-gutter-line{display:block;height:21px;line-height:21px;text-align:right;padding-right:10px;font-size:12px;font-family:var(--mono);color:var(--text3)}
+.editor-textarea{flex:1;background:var(--bg);color:var(--text);font-family:var(--mono);font-size:13px;line-height:21px;padding:12px 16px;border:none;outline:none;resize:none;white-space:pre;overflow-wrap:normal;overflow-x:auto;tab-size:2}
+.editor-find-bar{background:var(--surface2);border-bottom:1px solid var(--border);padding:8px 16px;display:none;align-items:center;gap:10px;flex-shrink:0}
+.editor-find-bar.open{display:flex}
+.editor-find-input{background:var(--surface);border:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:12px;padding:6px 10px;border-radius:var(--radius-sm);outline:none;width:220px}
+.editor-find-input:focus{border-color:var(--accent)}
+.editor-find-count{font-size:11px;font-family:var(--mono);color:var(--text3);min-width:60px}
+.editor-save-opts{display:flex;gap:8px;align-items:center}
+.editor-unsaved{width:8px;height:8px;border-radius:50%;background:var(--warning);flex-shrink:0;display:none}
+.editor-unsaved.visible{display:block}
+
+/* ── STORAGE CHART ── */
+.storage-chart-wrap{display:flex;align-items:center;gap:24px;margin-bottom:10px}
+.storage-donut{flex-shrink:0}
+.storage-legend{display:flex;flex-direction:column;gap:8px;flex:1}
+.legend-row{display:flex;align-items:center;gap:8px;font-size:12px;font-family:var(--mono)}
+.legend-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.legend-label{flex:1;color:var(--text2)}
+.legend-val{color:var(--text3)}
+
+/* ── FILE TAGS ── */
+.file-tags{display:flex;gap:3px;flex-wrap:wrap;justify-content:center;margin-top:2px}
+.file-tag{padding:1px 6px;border-radius:99px;font-size:9px;font-family:var(--mono);font-weight:600;cursor:pointer;letter-spacing:0.03em}
+.file-tag.red{background:rgba(255,91,114,0.18);color:#ff5b72}
+.file-tag.green{background:rgba(77,255,160,0.18);color:#4dffa0}
+.file-tag.blue{background:rgba(91,140,255,0.18);color:#5b8cff}
+.file-tag.yellow{background:rgba(255,184,77,0.18);color:#ffb84d}
+.file-tag.purple{background:rgba(167,139,250,0.18);color:#a78bfa}
+.tag-btn{display:flex;align-items:center;gap:3px;padding:2px 7px;border-radius:99px;font-size:10px;cursor:pointer;border:1px dashed var(--border2);color:var(--text3);background:none;font-family:var(--mono)}
+.tag-btn:hover{border-color:var(--accent);color:var(--accent)}
+.tag-picker{display:flex;gap:6px;flex-wrap:wrap;padding:8px 0}
+.tag-swatch{width:22px;height:22px;border-radius:50%;cursor:pointer;border:2px solid transparent;transition:var(--transition)}
+.tag-swatch:hover,.tag-swatch.active{border-color:var(--text);transform:scale(1.15)}
+
+/* ── ACTIVITY TIMELINE ── */
+.activity-panel{width:260px;flex-shrink:0;background:var(--surface);border-left:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;transition:var(--transition)}
+.activity-panel.collapsed{width:0;border-left:none}
+.activity-header{padding:14px 14px 8px;font-size:10px;color:var(--text3);font-family:var(--mono);text-transform:uppercase;letter-spacing:.08em;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.activity-scroll{flex:1;overflow-y:auto;padding:0 10px 10px}
+.activity-item{display:flex;gap:10px;padding:8px 4px;border-bottom:1px solid var(--border);position:relative}
+.activity-item:last-child{border-bottom:none}
+.activity-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:5px}
+.activity-dot.upload{background:var(--success)}.activity-dot.delete{background:var(--danger)}.activity-dot.create{background:var(--accent)}.activity-dot.share{background:var(--warning)}.activity-dot.default{background:var(--text3)}
+.activity-content{flex:1;min-width:0}
+.activity-action{font-size:11.5px;color:var(--text);line-height:1.4;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.activity-meta{font-size:10px;color:var(--text3);font-family:var(--mono);margin-top:2px}
+.activity-toggle{cursor:pointer;color:var(--text3);display:flex;align-items:center;padding:2px;border-radius:3px;transition:var(--transition);background:none;border:none}
+.activity-toggle:hover{color:var(--accent)}
+.activity-toggle svg{width:13px;height:13px}
+
+/* ── QUICK PREVIEW PANEL (side panel) ── */
+.side-preview{position:fixed;top:52px;right:0;bottom:0;width:320px;background:var(--surface);border-left:1px solid var(--border);z-index:400;display:flex;flex-direction:column;transform:translateX(100%);transition:transform 0.22s ease;box-shadow:-8px 0 32px rgba(0,0,0,0.3)}
+.side-preview.open{transform:translateX(0)}
+.side-preview-header{padding:14px 14px 12px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;flex-shrink:0}
+.side-preview-title{flex:1;font-size:13px;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:500}
+.side-preview-close{background:none;border:none;cursor:pointer;color:var(--text3);display:flex;align-items:center;padding:3px;border-radius:4px;transition:var(--transition)}
+.side-preview-close:hover{color:var(--text);background:var(--surface2)}
+.side-preview-close svg{width:14px;height:14px}
+.side-preview-body{flex:1;overflow-y:auto;padding:14px}
+.side-preview-thumb{width:100%;height:160px;object-fit:contain;border-radius:var(--radius-sm);background:var(--surface2);margin-bottom:12px;display:flex;align-items:center;justify-content:center;font-size:48px;overflow:hidden}
+.side-preview-thumb img{max-width:100%;max-height:160px;object-fit:contain}
+.side-meta-row{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--border);font-size:12px}
+.side-meta-row:last-child{border-bottom:none}
+.side-meta-label{color:var(--text3);font-family:var(--mono)}
+.side-meta-val{color:var(--text2);text-align:right;max-width:55%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.side-preview-actions{padding:12px 14px;border-top:1px solid var(--border);display:flex;gap:8px;flex-shrink:0}
+
+/* ── STARRED FILES ── */
+.star-btn{position:absolute;top:7px;left:30px;width:18px;height:18px;display:flex;align-items:center;justify-content:center;cursor:pointer;opacity:0;transition:var(--transition);color:var(--text3)}
+.file-card:hover .star-btn{opacity:1}
+.star-btn.starred{opacity:1;color:var(--warning)}
+.star-btn svg{width:13px;height:13px}
+.pinned-section{margin-bottom:16px}
+.pinned-header{font-size:10px;color:var(--text3);font-family:var(--mono);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px;padding:0 2px;display:flex;align-items:center;gap:6px}
+
+/* ── VERSION DIFF ── */
+.diff-view{display:grid;grid-template-columns:1fr 1fr;gap:12px;max-height:480px;overflow-y:auto}
+.diff-col{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);overflow:auto}
+.diff-col-header{padding:8px 12px;border-bottom:1px solid var(--border);font-size:11px;font-family:var(--mono);color:var(--text3);display:flex;align-items:center;gap:8px;position:sticky;top:0;background:var(--surface2);z-index:1}
+.diff-line{display:flex;gap:0;font-size:12px;font-family:var(--mono);line-height:1.7;padding:0 12px}
+.diff-line.added{background:rgba(77,255,160,0.08);border-left:2px solid var(--success)}
+.diff-line.removed{background:rgba(255,91,114,0.08);border-left:2px solid var(--danger)}
+.diff-line.unchanged{border-left:2px solid transparent;color:var(--text3)}
+.diff-linenum{min-width:32px;color:var(--text3);font-size:10px;padding-right:8px;user-select:none;text-align:right;opacity:0.6}
+.diff-content{white-space:pre-wrap;word-break:break-all;flex:1;color:var(--text)}
+.diff-controls{display:flex;gap:10px;align-items:center;margin-bottom:12px}
+.diff-sel{background:var(--surface2);border:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:12px;padding:7px 10px;border-radius:var(--radius-sm);outline:none;flex:1}
+.diff-stat{font-size:11px;font-family:var(--mono);display:flex;gap:10px}
+.diff-stat-add{color:var(--success)}.diff-stat-del{color:var(--danger)}
 </style>
 </head>
 <body>
@@ -351,6 +467,11 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--s
       <button class="tb-btn primary" id="btn-upload" onclick="openUploadModal()">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>Upload
       </button>
+      <!-- THEME TOGGLE -->
+      <div class="theme-toggle" onclick="toggleTheme()" title="Toggle Light/Dark">
+        <span class="theme-icon" id="theme-icon">🌙</span>
+        <div class="theme-toggle-knob"></div>
+      </div>
       <div class="user-chip" id="user-chip" onclick="toggleUserMenu(event)">
         <div class="user-avatar" id="user-avatar">?</div>
         <span id="username-display">user</span>
@@ -430,6 +551,9 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--s
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
             </div>
           </div>
+          <button class="tb-btn" onclick="toggleActivityPanel()" title="Toggle Activity Feed">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:13px;height:13px"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+          </button>
         </div>
       </div>
 
@@ -450,7 +574,32 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--s
         <div id="file-container"></div>
       </div>
     </div>
+
+    <!-- ACTIVITY TIMELINE PANEL -->
+    <div class="activity-panel" id="activity-panel">
+      <div class="activity-header">
+        Activity
+        <button class="activity-toggle" onclick="toggleActivityPanel()" title="Collapse">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+        </button>
+      </div>
+      <div class="activity-scroll" id="activity-scroll">
+        <div style="color:var(--text3);font-size:11px;font-family:var(--mono);padding:8px 4px">Loading…</div>
+      </div>
+    </div>
   </div>
+</div>
+
+<!-- SIDE QUICK PREVIEW -->
+<div class="side-preview" id="side-preview">
+  <div class="side-preview-header">
+    <div class="side-preview-title" id="side-preview-title">File Info</div>
+    <button class="side-preview-close" onclick="closeSidePreview()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+  </div>
+  <div class="side-preview-body" id="side-preview-body"></div>
+  <div class="side-preview-actions" id="side-preview-actions"></div>
 </div>
 
 <!-- DRAG OVERLAY -->
@@ -461,6 +610,9 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--s
   <div class="ctx-item" id="ctx-preview" onclick="ctxAction('preview')">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>Preview
   </div>
+  <div class="ctx-item" id="ctx-edit" onclick="ctxAction('edit')" style="display:none">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>Edit File
+  </div>
   <div class="ctx-item" id="ctx-download" onclick="ctxAction('download')">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>Download
   </div>
@@ -469,6 +621,12 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--s
   </div>
   <div class="ctx-item" id="ctx-newver" onclick="ctxAction('newver')">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>Upload New Version
+  </div>
+  <div class="ctx-item" id="ctx-diff" onclick="ctxAction('diff')" style="display:none">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 3 21 3 21 8"/><line x1="4" y1="20" x2="21" y2="3"/><polyline points="21 16 21 21 16 21"/><line x1="15" y1="15" x2="21" y2="21"/></svg>Compare Versions
+  </div>
+  <div class="ctx-item" id="ctx-label" onclick="ctxAction('label')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>Add Label
   </div>
   <div class="ctx-item" id="ctx-share" onclick="ctxAction('share')">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>Share Link
@@ -748,6 +906,88 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--s
 
 <div id="toast-container"></div>
 
+<!-- TEXT EDITOR -->
+<div class="editor-backdrop" id="editor-backdrop">
+  <div class="editor-topbar">
+    <div class="editor-title" id="editor-title">Untitled</div>
+    <div class="editor-unsaved" id="editor-unsaved" title="Unsaved changes"></div>
+    <button class="tb-btn" onclick="editorFindToggle()" title="Find & Replace (Ctrl+F)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>Find
+    </button>
+    <button class="tb-btn" onclick="editorSaveVersion()" title="Save as New Version">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>New Version
+    </button>
+    <button class="tb-btn primary" onclick="editorSaveOverwrite()" title="Overwrite current file">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>Save
+    </button>
+    <button class="tb-btn" onclick="closeEditor()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>Close
+    </button>
+  </div>
+  <div class="editor-find-bar" id="editor-find-bar">
+    <input class="editor-find-input" type="text" id="editor-find-input" placeholder="Find…" oninput="editorFind(this.value)"/>
+    <input class="editor-find-input" type="text" id="editor-replace-input" placeholder="Replace with…" style="width:180px"/>
+    <button class="tb-btn" onclick="editorReplaceOne()">Replace</button>
+    <button class="tb-btn" onclick="editorReplaceAll()">All</button>
+    <span class="editor-find-count" id="editor-find-count"></span>
+    <button class="tb-btn" onclick="editorFindToggle()" style="margin-left:auto">✕</button>
+  </div>
+  <div class="editor-body">
+    <div class="editor-gutter" id="editor-gutter"></div>
+    <textarea class="editor-textarea" id="editor-textarea"
+      oninput="onEditorInput()" onscroll="syncGutterScroll()" onkeydown="editorKeydown(event)"
+      spellcheck="false" autocorrect="off" autocapitalize="off"></textarea>
+  </div>
+  <div class="editor-statusbar">
+    <span id="editor-stat-lines">Lines: 0</span>
+    <span id="editor-stat-words">Words: 0</span>
+    <span id="editor-stat-chars">Chars: 0</span>
+    <span id="editor-stat-lang" style="margin-left:auto;color:var(--accent)"></span>
+  </div>
+</div>
+
+<!-- TAG PICKER MODAL -->
+<div class="modal-backdrop" id="modal-tags">
+  <div class="modal sm"><div class="modal-title">File Labels</div>
+    <div class="modal-body">
+      <p style="font-size:12px;color:var(--text3);font-family:var(--mono)">Pick a color label for this file:</p>
+      <div class="tag-picker" id="tag-picker-swatches"></div>
+      <div style="display:flex;gap:8px;align-items:center;margin-top:4px">
+        <input class="modal-input" type="text" id="tag-label-input" placeholder="Label text (optional)" style="flex:1"/>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-ghost" onclick="closeModal('modal-tags')">Cancel</button>
+      <button class="btn-ghost" onclick="removeFileTag()">Remove Label</button>
+      <button class="btn-primary" onclick="saveFileTag()">Apply</button>
+    </div>
+  </div>
+</div>
+
+<!-- VERSION DIFF MODAL -->
+<div class="modal-backdrop" id="modal-diff">
+  <div class="modal" style="width:860px;max-width:98vw">
+    <div class="modal-title">Version Diff — <span id="diff-filename" style="color:var(--accent)"></span></div>
+    <div class="modal-body">
+      <div class="diff-controls">
+        <div style="flex:1">
+          <div style="font-size:11px;color:var(--text3);font-family:var(--mono);margin-bottom:4px">Compare</div>
+          <select class="diff-sel" id="diff-sel-a"></select>
+        </div>
+        <div style="font-size:18px;color:var(--text3);padding-top:18px">↔</div>
+        <div style="flex:1">
+          <div style="font-size:11px;color:var(--text3);font-family:var(--mono);margin-bottom:4px">With</div>
+          <select class="diff-sel" id="diff-sel-b"></select>
+        </div>
+        <div style="padding-top:14px"><button class="btn-primary" onclick="runDiff()">Compare</button></div>
+      </div>
+      <div class="diff-stat" id="diff-stat"></div>
+      <div class="diff-view" id="diff-view"></div>
+    </div>
+    <div class="modal-footer"><button class="btn-ghost" onclick="closeModal('modal-diff')">Close</button></div>
+  </div>
+</div>
+
 <script>
 // ═══════════════════════════════════
 // CONFIG
@@ -921,12 +1161,16 @@ function startApp(){
   ['username-display','dd-username'].forEach(id=>document.getElementById(id).textContent=currentUser);
   document.getElementById('user-avatar').textContent=(currentUser||'?')[0].toUpperCase();
   document.getElementById('dd-email').textContent=currentEmail||'CLOTE account';
+  applyTheme(currentTheme);
+  // Apply activity panel collapsed state
+  if(activityCollapsed)document.getElementById('activity-panel').classList.add('collapsed');
   loadAll();
 }
 
 async function loadAll(){
   await Promise.all([fetchAllPersonalFolders(),fetchAllProjects()]);
   navMyFiles();
+  loadActivityFeed();
 }
 
 // ═══════════════════════════════════
@@ -943,7 +1187,7 @@ async function apiFetch(path,opts={}){
 // ═══════════════════════════════════
 function navMyFiles(){
   mode='personal';currentProjectId=null;currentProjectRole=null;currentFolderId=null;folderStack=[];
-  clearSearch();clearSelection();
+  clearSearch();clearSelection();closeSidePreview();
   document.getElementById('btn-upload').style.display='';
   document.getElementById('btn-new-folder').style.display='';
   document.getElementById('btn-proj-settings').style.display='none';
@@ -1051,7 +1295,20 @@ function renderItems(){
 }
 
 function renderGrid(folders,files,container){
-  let h=`<div class="file-grid">`;
+  const starred=getStarred();
+  const tags=getTags();
+  const starredFiles=files.filter(f=>starred.includes(f.id));
+  const unstarredFiles=files.filter(f=>!starred.includes(f.id));
+  let h='';
+  if(starredFiles.length){
+    h+=`<div class="pinned-section"><div class="pinned-header">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:12px;height:12px;color:var(--warning)"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+      Pinned
+    </div><div class="file-grid">`;
+    starredFiles.forEach(f=>{h+=renderFileCard(f,tags,starred);});
+    h+=`</div></div>`;
+  }
+  h+=`<div class="file-grid">`;
   folders.forEach(f=>{
     h+=`<div class="file-card" ondblclick="navFolder(${f.id},'${escHtml(f.name)}')" oncontextmenu="showCtx(event,'folder',${f.id},'${escHtml(f.name)}')">
       <div class="card-check ${selectedIds.has('f'+f.id)?'checked':''}" onclick="event.stopPropagation();toggleSelect('f'+${f.id},this)">
@@ -1062,20 +1319,31 @@ function renderGrid(folders,files,container){
       <div class="file-name">${escHtml(f.name)}</div>
       <div class="file-meta">folder</div></div>`;
   });
-  files.forEach(f=>{
-    const ic=fileIcon(f.filename,f.mime_type);
-    h+=`<div class="file-card ${selectedIds.has('file'+f.id)?'selected':''}" onclick="handleFileClick(event,${f.id})" oncontextmenu="showCtx(event,'file',${f.id},'${escHtml(f.filename)}','${f.mime_type||""}')">
-      <div class="card-check ${selectedIds.has('file'+f.id)?'checked':''}" onclick="event.stopPropagation();toggleSelect('file'+${f.id},this)">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>
-      <div class="ctx-btn" onclick="event.stopPropagation();showCtx(event,'file',${f.id},'${escHtml(f.filename)}','${f.mime_type||""}')">⋯</div>
-      <div class="file-icon" style="${ic.style}">${ic.emoji}</div>
-      <div class="file-name">${escHtml(f.filename)}</div>
-      <div class="file-meta">v${f.current_version} · ${fmtSize(f.size_bytes)}</div></div>`;
-  });
+  unstarredFiles.forEach(f=>{h+=renderFileCard(f,tags,starred);});
   h+=`</div>`;container.innerHTML=h;
 }
 
+function renderFileCard(f,tags,starred){
+  const ic=fileIcon(f.filename,f.mime_type);
+  const tag=tags[f.id];
+  const isStarredFile=starred.includes(f.id);
+  return`<div class="file-card ${selectedIds.has('file'+f.id)?'selected':''}" onclick="handleFileClick(event,${f.id})" oncontextmenu="showCtx(event,'file',${f.id},'${escHtml(f.filename)}','${f.mime_type||""}')">
+    <div class="card-check ${selectedIds.has('file'+f.id)?'checked':''}" onclick="event.stopPropagation();toggleSelect('file'+${f.id},this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>
+    <div class="ctx-btn" onclick="event.stopPropagation();showCtx(event,'file',${f.id},'${escHtml(f.filename)}','${f.mime_type||""}')">⋯</div>
+    <div class="star-btn ${isStarredFile?'starred':''}" onclick="toggleStar(event,${f.id})" title="${isStarredFile?'Unpin':'Pin'}">
+      <svg viewBox="0 0 24 24" fill="${isStarredFile?'currentColor':'none'}" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+    </div>
+    <div class="file-icon" style="${ic.style}">${ic.emoji}</div>
+    <div class="file-name">${escHtml(f.filename)}</div>
+    <div class="file-meta">v${f.current_version} · ${fmtSize(f.size_bytes)}</div>
+    ${tag?`<div class="file-tags"><span class="file-tag ${tag.color}">${escHtml(tag.label||tag.color)}</span></div>`:''}
+  </div>`;
+}
+
 function renderList(folders,files,container){
+  const tags=getTags();
+  const starred=getStarred();
   let h=`<div class="file-list-view">
     <div class="list-header"><div class="lh-check"></div><div class="lh-name">Name</div><div class="lh-size">Size</div><div class="lh-date">Modified</div></div>`;
   folders.forEach(f=>{
@@ -1094,14 +1362,22 @@ function renderList(folders,files,container){
   });
   files.forEach(f=>{
     const ic=fileIcon(f.filename,f.mime_type);
+    const tag=tags[f.id];
+    const isStarredFile=starred.includes(f.id);
     h+=`<div class="list-item ${selectedIds.has('file'+f.id)?'selected':''}" onclick="handleFileClick(event,${f.id})" oncontextmenu="showCtx(event,'file',${f.id},'${escHtml(f.filename)}','${f.mime_type||""}')">
       <div class="list-check ${selectedIds.has('file'+f.id)?'checked':''}" onclick="event.stopPropagation();toggleSelect('file'+${f.id},this)">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>
       <div class="list-fi" style="${ic.style}">${ic.emoji}</div>
-      <div class="list-name">${escHtml(f.filename)}</div>
+      <div class="list-name" style="display:flex;align-items:center;gap:6px">
+        ${escHtml(f.filename)}
+        ${tag?`<span class="file-tag ${tag.color}" style="font-size:9px">${escHtml(tag.label||tag.color)}</span>`:''}
+        ${isStarredFile?`<svg viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1" style="width:11px;height:11px;color:var(--warning);flex-shrink:0"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>`:''}
+      </div>
       <div class="list-size">${fmtSize(f.size_bytes)}</div>
       <div class="list-date">${fmtDate(f.updated_at||f.created_at)}</div>
       <div class="list-actions">
+        <div class="icon-btn" title="Quick Info" onclick="event.stopPropagation();openSidePreview(${f.id})">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></div>
         <div class="icon-btn" title="Download" onclick="event.stopPropagation();downloadFile(${f.id})">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></div>
         <div class="icon-btn danger" title="Trash" onclick="event.stopPropagation();openDeleteModal('file',${f.id},'${escHtml(f.filename)}')">
@@ -1171,7 +1447,13 @@ function updateBulkBar(){
 }
 
 function handleFileClick(e,fileId){
-  if(e.detail===2)openPreview(fileId);
+  if(e.detail===2){
+    const file=currentFiles.find(f=>f.id===fileId);
+    if(file&&isEditable(file.filename,file.mime_type))openEditor(fileId);
+    else openPreview(fileId);
+  } else {
+    openSidePreview(fileId);
+  }
 }
 
 function getSelectedFileIds(){
@@ -1230,6 +1512,12 @@ function showCtx(e,type,id,name,mime){
     aiItem.style.display=show;
     if(aiSep)aiSep.style.display=show;
   }
+  // Edit button for editable files
+  const editBtn=document.getElementById('ctx-edit');
+  if(editBtn)editBtn.style.display=(isFile&&isEditable(name,mime))?'':'none';
+  // Diff button for files
+  const diffBtn=document.getElementById('ctx-diff');
+  if(diffBtn)diffBtn.style.display=isFile?'':'none';
   // Measure using visibility:hidden so CSS display:block kicks in without showing it
   m.style.visibility='hidden';
   m.classList.add('open');
@@ -1273,6 +1561,9 @@ function ctxAction(action){
   else if(action==='move')openMoveModal(id);
   else if(action==='delete')openDeleteModal(type,id,name);
   else if(action==='ai-summary')openAiSummary(id,name);
+  else if(action==='edit')openEditor(id);
+  else if(action==='label')openTagModal(id);
+  else if(action==='diff')openDiff(id,name);
 }
 
 // ═══════════════════════════════════
@@ -1294,7 +1585,7 @@ async function doUpload(){
   toast(`Uploaded ${done}/${inp.files.length} file(s)`,'success');
   closeModal('modal-upload');inp.value='';
   document.getElementById('upload-drop-label').textContent='';
-  loadView();
+  loadView();loadActivityFeed();
 }
 
 async function doCreateFolder(){
@@ -1476,23 +1767,49 @@ async function openStorageModal(e){
     const r=await apiFetch('/auth/me/storage');
     const d=await r.json();
     const body=document.getElementById('storage-body');
-    let h=`<div style="display:flex;flex-direction:column;gap:14px">`;
     const pb=d.personal;
+    const tr=d.trash;
+    const projTotal=d.projects.reduce((s,p)=>s+p.used,0);
+    const total=pb.used_bytes+tr.used_bytes+projTotal||1;
+    // Color segments
+    const segments=[
+      {label:'Personal',value:pb.used_bytes,color:'#5b8cff'},
+      {label:'Trash',value:tr.used_bytes,color:'#ff5b72'},
+      {label:'Projects',value:projTotal,color:'#a78bfa'},
+    ];
+    let h=`<div class="storage-chart-wrap">
+      <div class="storage-donut"><canvas id="storage-donut-canvas" width="120" height="120"></canvas></div>
+      <div class="storage-legend">
+        ${segments.map(s=>`<div class="legend-row">
+          <div class="legend-dot" style="background:${s.color}"></div>
+          <span class="legend-label">${s.label}</span>
+          <span class="legend-val">${fmtSize(s.value)}</span>
+        </div>`).join('')}
+        <div class="legend-row" style="margin-top:4px;border-top:1px solid var(--border);padding-top:6px">
+          <span class="legend-label" style="color:var(--text)">Total</span>
+          <span class="legend-val" style="color:var(--text)">${fmtSize(pb.used_bytes+tr.used_bytes+projTotal)}</span>
+        </div>
+      </div>
+    </div>`;
+    h+=`<div style="display:flex;flex-direction:column;gap:14px">`;
     h+=`<div><div style="display:flex;justify-content:space-between;font-size:12px;font-family:var(--mono);color:var(--text2);margin-bottom:4px">
       <span>Personal files</span><span>${fmtSize(pb.used_bytes)} · ${pb.file_count} files</span></div>
-      <div class="storage-bar"><div class="storage-bar-fill" style="width:${Math.min(100,(pb.used_bytes/1073741824)*100)}%"></div></div></div>`;
-    const tr=d.trash;
+      <div class="storage-bar"><div class="storage-bar-fill" style="width:${Math.min(100,(pb.used_bytes/total)*100)}%"></div></div></div>`;
+    const trashRow=d.trash;
     h+=`<div><div style="display:flex;justify-content:space-between;font-size:12px;font-family:var(--mono);color:var(--text2);margin-bottom:4px">
-      <span>Trash</span><span>${fmtSize(tr.used_bytes)} · ${tr.file_count} files</span></div></div>`;
+      <span>Trash</span><span>${fmtSize(trashRow.used_bytes)} · ${trashRow.file_count} files</span></div>
+      <div class="storage-bar"><div class="storage-bar-fill" style="width:${Math.min(100,(trashRow.used_bytes/total)*100)}%;background:var(--danger)"></div></div></div>`;
     if(d.projects.length){
       h+=`<div style="font-size:11px;color:var(--text3);font-family:var(--mono);text-transform:uppercase;letter-spacing:.06em">Projects</div>`;
       d.projects.forEach(p=>{
         h+=`<div><div style="display:flex;justify-content:space-between;font-size:12px;font-family:var(--mono);color:var(--text2);margin-bottom:4px">
           <span>${escHtml(p.name)}</span><span>${fmtSize(p.used)} · ${p.file_count} files</span></div>
-          <div class="storage-bar"><div class="storage-bar-fill" style="width:${Math.min(100,(p.used/1073741824)*100)}%;background:var(--project)"></div></div></div>`;
+          <div class="storage-bar"><div class="storage-bar-fill" style="width:${Math.min(100,(p.used/total)*100)}%;background:var(--project)"></div></div></div>`;
       });
     }
     h+=`</div>`;body.innerHTML=h;
+    // Draw donut after DOM update
+    setTimeout(()=>drawDonut('storage-donut-canvas',segments),50);
   }catch(e){document.getElementById('storage-body').innerHTML='<p style="color:var(--danger);font-family:var(--mono);font-size:12px">Failed to load</p>';}
 }
 
@@ -1801,7 +2118,7 @@ document.addEventListener('mousedown',e=>{
   if(chip&&!chip.contains(e.target))document.getElementById('user-dropdown').classList.remove('open');
 });
 document.addEventListener('keydown',e=>{
-  if(e.key==='Escape'){closeCtx();closePreview();document.querySelectorAll('.modal-backdrop.open').forEach(m=>m.classList.remove('open'));}
+  if(e.key==='Escape'){closeCtx();closePreview();closeEditor();closeSidePreview();document.querySelectorAll('.modal-backdrop.open').forEach(m=>m.classList.remove('open'));}
 });
 
 // ═══════════════════════════════════
@@ -1829,6 +2146,390 @@ function fileIcon(filename,mime){
   if(['doc','docx','txt','md'].includes(ext))return{emoji:'📝',style:'background:rgba(91,140,255,0.15);color:#7b9fff'};
   if(['xls','xlsx','csv'].includes(ext))return{emoji:'📊',style:'background:rgba(77,255,160,0.12);color:#4dffa0'};
   return{emoji:'📦',style:'background:var(--surface2);color:var(--text2)'};
+}
+
+// ═══════════════════════════════════
+// THEME
+// ═══════════════════════════════════
+let currentTheme = localStorage.getItem('clote_theme') || 'dark';
+function applyTheme(t){
+  currentTheme=t;
+  document.documentElement.setAttribute('data-theme',t==='light'?'light':'');
+  const icon=document.getElementById('theme-icon');
+  if(icon)icon.textContent=t==='light'?'☀️':'🌙';
+  localStorage.setItem('clote_theme',t);
+}
+function toggleTheme(){applyTheme(currentTheme==='dark'?'light':'dark');}
+applyTheme(currentTheme);
+
+// ═══════════════════════════════════
+// STARRED FILES
+// ═══════════════════════════════════
+function getStarred(){return JSON.parse(localStorage.getItem('clote_starred')||'[]');}
+function setStarred(arr){localStorage.setItem('clote_starred',JSON.stringify(arr));}
+function isStarred(id){return getStarred().includes(id);}
+function toggleStar(e,fileId){
+  e.stopPropagation();
+  const arr=getStarred();
+  const i=arr.indexOf(fileId);
+  if(i>=0)arr.splice(i,1);else arr.push(fileId);
+  setStarred(arr);renderItems();
+}
+
+// ═══════════════════════════════════
+// FILE TAGS (local storage)
+// ═══════════════════════════════════
+const TAG_COLORS={red:'#ff5b72',green:'#4dffa0',blue:'#5b8cff',yellow:'#ffb84d',purple:'#a78bfa'};
+let tagTargetId=null;let tagSelectedColor=null;
+function getTags(){return JSON.parse(localStorage.getItem('clote_tags')||'{}');}
+function setTags(obj){localStorage.setItem('clote_tags',JSON.stringify(obj));}
+function getFileTag(id){return getTags()[id]||null;}
+function openTagModal(fileId){
+  tagTargetId=fileId;tagSelectedColor=null;
+  const existing=getFileTag(fileId);
+  if(existing){tagSelectedColor=existing.color;document.getElementById('tag-label-input').value=existing.label||'';}
+  else{document.getElementById('tag-label-input').value='';}
+  const sw=document.getElementById('tag-picker-swatches');
+  sw.innerHTML=Object.entries(TAG_COLORS).map(([name,color])=>`
+    <div class="tag-swatch ${existing&&existing.color===name?'active':''}" style="background:${color}" data-color="${name}"
+      onclick="selectTagColor(this,'${name}')"></div>`).join('');
+  openModal('modal-tags');
+}
+function selectTagColor(el,color){
+  tagSelectedColor=color;
+  document.querySelectorAll('.tag-swatch').forEach(s=>s.classList.remove('active'));
+  el.classList.add('active');
+}
+function saveFileTag(){
+  if(!tagTargetId)return;
+  const label=document.getElementById('tag-label-input').value.trim();
+  const tags=getTags();
+  if(tagSelectedColor)tags[tagTargetId]={color:tagSelectedColor,label};
+  setTags(tags);closeModal('modal-tags');renderItems();
+}
+function removeFileTag(){
+  if(!tagTargetId)return;
+  const tags=getTags();delete tags[tagTargetId];
+  setTags(tags);closeModal('modal-tags');renderItems();
+}
+
+// ═══════════════════════════════════
+// ACTIVITY PANEL
+// ═══════════════════════════════════
+let activityCollapsed=localStorage.getItem('clote_activity_collapsed')==='1';
+function toggleActivityPanel(){
+  activityCollapsed=!activityCollapsed;
+  localStorage.setItem('clote_activity_collapsed',activityCollapsed?'1':'0');
+  document.getElementById('activity-panel').classList.toggle('collapsed',activityCollapsed);
+}
+async function loadActivityFeed(){
+  try{
+    const r=await apiFetch('/audit/?limit=30');
+    const d=await r.json();
+    const el=document.getElementById('activity-scroll');
+    if(!d.logs||!d.logs.length){el.innerHTML='<div style="color:var(--text3);font-size:11px;font-family:var(--mono);padding:8px 4px">No activity yet</div>';return;}
+    const actionDot={upload:'upload',download:'default',delete:'delete',trash:'delete',create:'create',share:'share',login:'default',logout:'default'};
+    el.innerHTML=d.logs.map(l=>{
+      const act=Object.keys(actionDot).find(k=>(l.action||'').toLowerCase().includes(k))||'default';
+      return`<div class="activity-item">
+        <div class="activity-dot ${act}"></div>
+        <div class="activity-content">
+          <div class="activity-action" title="${escHtml(l.target_name||'')}">
+            <strong>${escHtml(l.action||'')}</strong>${l.target_name?' — '+escHtml(l.target_name):''}
+          </div>
+          <div class="activity-meta">${escHtml(l.username||'—')} · ${fmtDate(l.created_at)}</div>
+        </div>
+      </div>`;
+    }).join('');
+  }catch(e){}
+}
+
+// ═══════════════════════════════════
+// SIDE QUICK PREVIEW
+// ═══════════════════════════════════
+let sidePreviewFileId=null;
+async function openSidePreview(fileId){
+  const file=currentFiles.find(f=>f.id===fileId);
+  if(!file)return;
+  sidePreviewFileId=fileId;
+  document.getElementById('side-preview-title').textContent=file.filename;
+  const body=document.getElementById('side-preview-body');
+  const ic=fileIcon(file.filename,file.mime_type);
+  const mime=file.mime_type||'';
+  let thumbHtml=`<div class="side-preview-thumb" style="${ic.style}">${ic.emoji}</div>`;
+  if(mime.startsWith('image/')){
+    thumbHtml=`<div class="side-preview-thumb" style="padding:0"><img id="spt-img" style="max-width:100%;max-height:160px;object-fit:contain"/></div>`;
+  }
+  body.innerHTML=`${thumbHtml}
+    <div class="side-meta-row"><span class="side-meta-label">Name</span><span class="side-meta-val" title="${escHtml(file.filename)}">${escHtml(file.filename)}</span></div>
+    <div class="side-meta-row"><span class="side-meta-label">Size</span><span class="side-meta-val">${fmtSize(file.size_bytes)}</span></div>
+    <div class="side-meta-row"><span class="side-meta-label">Version</span><span class="side-meta-val">v${file.current_version}</span></div>
+    <div class="side-meta-row"><span class="side-meta-label">Type</span><span class="side-meta-val">${mime||'unknown'}</span></div>
+    <div class="side-meta-row"><span class="side-meta-label">Modified</span><span class="side-meta-val">${fmtDate(file.updated_at||file.created_at)}</span></div>`;
+  document.getElementById('side-preview-actions').innerHTML=`
+    <button class="tb-btn" onclick="downloadFile(${fileId})">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:13px;height:13px"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/></svg>Download
+    </button>
+    <button class="tb-btn" onclick="openPreview(${fileId})">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:13px;height:13px"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>Full Preview
+    </button>`;
+  document.getElementById('side-preview').classList.add('open');
+  if(mime.startsWith('image/')){
+    try{
+      const r=await apiFetch(`/files/${fileId}/preview`);
+      if(r.ok){const blob=await r.blob();const img=document.getElementById('spt-img');if(img)img.src=URL.createObjectURL(blob);}
+    }catch(e){}
+  }
+}
+function closeSidePreview(){document.getElementById('side-preview').classList.remove('open');sidePreviewFileId=null;}
+
+// ═══════════════════════════════════
+// TEXT EDITOR
+// ═══════════════════════════════════
+let editorFileId=null;let editorOriginal='';let editorDirty=false;
+const TEXT_EXTS=['txt','md','markdown','json','js','ts','py','css','html','htm','xml','yaml','yml','sh','bash','sql','csv','ini','env','toml','rs','go','java','cpp','c','h','php','rb','swift','kt'];
+const LANG_MAP={js:'JavaScript',ts:'TypeScript',py:'Python',json:'JSON',html:'HTML',css:'CSS',md:'Markdown',sh:'Shell',sql:'SQL',yaml:'YAML',yml:'YAML',xml:'XML',rs:'Rust',go:'Go',java:'Java',cpp:'C++',c:'C',php:'PHP',rb:'Ruby',swift:'Swift',kt:'Kotlin'};
+
+function isEditable(filename,mime){
+  const ext=(filename||'').split('.').pop().toLowerCase();
+  return TEXT_EXTS.includes(ext)||(mime&&mime.startsWith('text/'))||mime==='application/json';
+}
+
+async function openEditor(fileId){
+  const file=currentFiles.find(f=>f.id===fileId);
+  if(!file)return;
+  editorFileId=fileId;editorDirty=false;
+  document.getElementById('editor-title').textContent=file.filename;
+  document.getElementById('editor-unsaved').classList.remove('visible');
+  const ext=(file.filename||'').split('.').pop().toLowerCase();
+  document.getElementById('editor-stat-lang').textContent=LANG_MAP[ext]||ext.toUpperCase()||'Text';
+  const ta=document.getElementById('editor-textarea');
+  ta.value='Loading…';ta.readOnly=true;
+  document.getElementById('editor-backdrop').classList.add('open');
+  try{
+    const r=await apiFetch(`/files/${fileId}/preview`);
+    const txt=await r.text();
+    ta.value=txt;ta.readOnly=false;
+    editorOriginal=txt;
+    updateEditorStats();updateGutter();
+  }catch(e){ta.value='Failed to load file.';ta.readOnly=true;}
+}
+
+function closeEditor(){
+  if(editorDirty&&!confirm('You have unsaved changes. Close anyway?'))return;
+  document.getElementById('editor-backdrop').classList.remove('open');
+  editorFileId=null;editorDirty=false;
+  document.getElementById('editor-find-bar').classList.remove('open');
+}
+
+function onEditorInput(){
+  editorDirty=true;
+  document.getElementById('editor-unsaved').classList.add('visible');
+  updateEditorStats();updateGutter();
+}
+
+function updateEditorStats(){
+  const txt=document.getElementById('editor-textarea').value;
+  const lines=txt.split('\n');
+  document.getElementById('editor-stat-lines').textContent='Lines: '+lines.length;
+  document.getElementById('editor-stat-words').textContent='Words: '+(txt.trim()?txt.trim().split(/\s+/).length:0);
+  document.getElementById('editor-stat-chars').textContent='Chars: '+txt.length;
+}
+
+function updateGutter(){
+  const ta=document.getElementById('editor-textarea');
+  const lines=ta.value.split('\n').length;
+  const g=document.getElementById('editor-gutter');
+  let h='';for(let i=1;i<=lines;i++)h+=`<span class="editor-gutter-line">${i}</span>`;
+  g.innerHTML=h;
+}
+
+function syncGutterScroll(){
+  const ta=document.getElementById('editor-textarea');
+  document.getElementById('editor-gutter').scrollTop=ta.scrollTop;
+}
+
+function editorKeydown(e){
+  if(e.key==='Tab'){e.preventDefault();const ta=e.target;const s=ta.selectionStart;ta.value=ta.value.substring(0,s)+'  '+ta.value.substring(ta.selectionEnd);ta.selectionStart=ta.selectionEnd=s+2;onEditorInput();}
+  if(e.ctrlKey&&e.key==='s'){e.preventDefault();editorSaveOverwrite();}
+  if(e.ctrlKey&&e.key==='f'){e.preventDefault();editorFindToggle();}
+}
+
+function editorFindToggle(){
+  const bar=document.getElementById('editor-find-bar');
+  bar.classList.toggle('open');
+  if(bar.classList.contains('open'))document.getElementById('editor-find-input').focus();
+}
+
+function editorFind(q){
+  const ta=document.getElementById('editor-textarea');
+  const count=document.getElementById('editor-find-count');
+  if(!q){count.textContent='';return;}
+  const matches=(ta.value.match(new RegExp(q.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'),'gi'))||[]).length;
+  count.textContent=`${matches} match${matches!==1?'es':''}`;
+}
+
+function editorReplaceOne(){
+  const ta=document.getElementById('editor-textarea');
+  const find=document.getElementById('editor-find-input').value;
+  const rep=document.getElementById('editor-replace-input').value;
+  if(!find)return;
+  const idx=ta.value.indexOf(find);
+  if(idx<0){toast('Not found','error');return;}
+  ta.value=ta.value.substring(0,idx)+rep+ta.value.substring(idx+find.length);
+  onEditorInput();editorFind(find);
+}
+
+function editorReplaceAll(){
+  const ta=document.getElementById('editor-textarea');
+  const find=document.getElementById('editor-find-input').value;
+  const rep=document.getElementById('editor-replace-input').value;
+  if(!find)return;
+  const re=new RegExp(find.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'),'g');
+  const before=ta.value;
+  ta.value=ta.value.replace(re,rep);
+  const count=(before.match(re)||[]).length;
+  onEditorInput();toast(`Replaced ${count} occurrence(s)`,'success');
+}
+
+async function editorSaveOverwrite(){
+  if(!editorFileId)return;
+  const txt=document.getElementById('editor-textarea').value;
+  const file=currentFiles.find(f=>f.id===editorFileId);
+  const blob=new Blob([txt],{type:'text/plain'});
+  const fd=new FormData();fd.append('file',blob,file?.filename||'file.txt');fd.append('note','Edited in CLOTE');
+  try{
+    const r=await apiFetch(`/files/${editorFileId}/upload`,{method:'POST',body:fd});
+    if(!r.ok){const d=await r.json();toast(d.detail||'Save failed','error');return;}
+    editorDirty=false;editorOriginal=txt;
+    document.getElementById('editor-unsaved').classList.remove('visible');
+    toast('File saved (overwrite)','success');loadView();
+  }catch(e){toast('Save error','error');}
+}
+
+async function editorSaveVersion(){
+  if(!editorFileId)return;
+  const txt=document.getElementById('editor-textarea').value;
+  const file=currentFiles.find(f=>f.id===editorFileId);
+  const blob=new Blob([txt],{type:'text/plain'});
+  const fd=new FormData();fd.append('file',blob,file?.filename||'file.txt');fd.append('note','Edited in CLOTE editor');
+  try{
+    const r=await apiFetch(`/files/${editorFileId}/upload`,{method:'POST',body:fd});
+    if(!r.ok){const d=await r.json();toast(d.detail||'Failed','error');return;}
+    editorDirty=false;
+    document.getElementById('editor-unsaved').classList.remove('visible');
+    toast('Saved as new version','success');loadView();
+  }catch(e){toast('Save error','error');}
+}
+
+// ═══════════════════════════════════
+// VERSION DIFF
+// ═══════════════════════════════════
+let diffFileId=null;let diffVersions=[];
+async function openDiff(fileId,filename){
+  diffFileId=fileId;
+  document.getElementById('diff-filename').textContent=filename;
+  document.getElementById('diff-view').innerHTML='<div style="color:var(--text3);font-family:var(--mono);font-size:12px;padding:12px">Loading versions…</div>';
+  document.getElementById('diff-stat').innerHTML='';
+  try{
+    const r=await apiFetch(`/files/${fileId}/versions`);
+    diffVersions=await r.json();
+    const selA=document.getElementById('diff-sel-a');
+    const selB=document.getElementById('diff-sel-b');
+    const opts=diffVersions.map(v=>`<option value="${v.version_num}">v${v.version_num}${v.is_current?' (current)':''} — ${fmtDate(v.created_at)}</option>`).join('');
+    selA.innerHTML=opts;selB.innerHTML=opts;
+    if(diffVersions.length>1){selA.selectedIndex=1;selB.selectedIndex=0;}
+    document.getElementById('diff-view').innerHTML='<div style="color:var(--text3);font-family:var(--mono);font-size:12px;padding:12px">Select versions and click Compare</div>';
+    openModal('modal-diff');
+  }catch(e){toast('Failed to load versions','error');}
+}
+
+async function runDiff(){
+  const va=parseInt(document.getElementById('diff-sel-a').value);
+  const vb=parseInt(document.getElementById('diff-sel-b').value);
+  if(va===vb){toast('Select two different versions','error');return;}
+  const dv=document.getElementById('diff-view');
+  dv.innerHTML='<div style="color:var(--text3);font-family:var(--mono);font-size:12px;padding:12px">Fetching…</div>';
+  try{
+    const [ra,rb]=await Promise.all([
+      apiFetch(`/files/${diffFileId}/versions/${va}/download`),
+      apiFetch(`/files/${diffFileId}/versions/${vb}/download`)
+    ]);
+    const [ta,tb]=await Promise.all([ra.text(),rb.text()]);
+    const linesA=ta.split('\n');const linesB=tb.split('\n');
+    const diff=computeDiff(linesA,linesB);
+    let added=0,removed=0;
+    diff.forEach(d=>{if(d.type==='add')added++;if(d.type==='del')removed++;});
+    document.getElementById('diff-stat').innerHTML=`<span class="diff-stat-add">+${added} added</span><span class="diff-stat-del">-${removed} removed</span>`;
+    dv.innerHTML=`
+      <div class="diff-col">
+        <div class="diff-col-header"><span style="color:var(--danger)">v${va}</span></div>
+        ${diff.filter(d=>d.type!=='add').map((d,i)=>`
+          <div class="diff-line ${d.type==='del'?'removed':'unchanged'}">
+            <span class="diff-linenum">${d.lineA||''}</span>
+            <span class="diff-content">${escHtml(d.text)}</span>
+          </div>`).join('')}
+      </div>
+      <div class="diff-col">
+        <div class="diff-col-header"><span style="color:var(--success)">v${vb}</span></div>
+        ${diff.filter(d=>d.type!=='del').map((d,i)=>`
+          <div class="diff-line ${d.type==='add'?'added':'unchanged'}">
+            <span class="diff-linenum">${d.lineB||''}</span>
+            <span class="diff-content">${escHtml(d.text)}</span>
+          </div>`).join('')}
+      </div>`;
+  }catch(e){dv.innerHTML='<div style="color:var(--danger);font-family:var(--mono);font-size:12px;padding:12px">Failed to fetch versions</div>';}
+}
+
+function computeDiff(a,b){
+  // Simple LCS-based line diff
+  const result=[];
+  let i=0,j=0;let la=1,lb=1;
+  const lcs=buildLCS(a,b);
+  let li=lcs.length-1,x=a.length-1,y=b.length-1;
+  const ops=[];
+  while(li>=0){
+    while(x>lcs[li][0]){ops.unshift({type:'del',text:a[x],lineA:x+1});x--;}
+    while(y>lcs[li][1]){ops.unshift({type:'add',text:b[y],lineB:y+1});y--;}
+    ops.unshift({type:'same',text:a[x],lineA:x+1,lineB:y+1});
+    x--;y--;li--;
+  }
+  while(x>=0){ops.unshift({type:'del',text:a[x],lineA:x+1});x--;}
+  while(y>=0){ops.unshift({type:'add',text:b[y],lineB:y+1});y--;}
+  return ops;
+}
+
+function buildLCS(a,b){
+  const m=Math.min(a.length,50),n=Math.min(b.length,50);
+  const dp=Array.from({length:m+1},()=>new Array(n+1).fill(0));
+  for(let i=1;i<=m;i++)for(let j=1;j<=n;j++)
+    dp[i][j]=a[i-1]===b[j-1]?dp[i-1][j-1]+1:Math.max(dp[i-1][j],dp[i][j-1]);
+  const lcs=[];let i=m,j=n;
+  while(i>0&&j>0){if(a[i-1]===b[j-1]){lcs.unshift([i-1,j-1]);i--;j--;}else if(dp[i-1][j]>dp[i][j-1])i--;else j--;}
+  return lcs;
+}
+
+// ═══════════════════════════════════
+// STORAGE DONUT CHART
+// ═══════════════════════════════════
+function drawDonut(canvasId,segments){
+  const canvas=document.getElementById(canvasId);
+  if(!canvas)return;
+  const ctx=canvas.getContext('2d');
+  const cx=60,cy=60,r=50,ir=32;
+  ctx.clearRect(0,0,120,120);
+  let start=-Math.PI/2;
+  const total=segments.reduce((s,seg)=>s+seg.value,0)||1;
+  segments.forEach(seg=>{
+    const sweep=(seg.value/total)*Math.PI*2;
+    ctx.beginPath();ctx.moveTo(cx,cy);
+    ctx.arc(cx,cy,r,start,start+sweep);
+    ctx.closePath();ctx.fillStyle=seg.color;ctx.fill();
+    start+=sweep;
+  });
+  ctx.beginPath();ctx.arc(cx,cy,ir,0,Math.PI*2);
+  ctx.fillStyle=getComputedStyle(document.documentElement).getPropertyValue('--surface').trim()||'#141720';
+  ctx.fill();
 }
 
 // ═══════════════════════════════════

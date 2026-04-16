@@ -1,0 +1,19 @@
+# Exclude virtual environment - Docker installs its own
+server/venv/
+venv/
+
+# Exclude user data - managed by Docker volumes
+server/storage/
+server/clote.db
+server/logs/
+
+# Exclude cache files
+**/__pycache__/
+**/*.pyc
+**/*.pyo
+
+# Exclude git and editor files
+.git/
+.gitignore
+*.md
+docs/

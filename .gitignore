@@ -31,3 +31,9 @@ server/storage/files
 *.pdf
 *.jpg
 *.png
+
+.env
+server/venv/
+server/storage/
+server/clote.db
+server/logs/

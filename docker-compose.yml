@@ -1,0 +1,31 @@
+version: "3.9"
+
+services:
+  clote:
+    build: .
+    container_name: clote
+    restart: unless-stopped
+    ports:
+      - "${CLOTE_PORT:-8000}:8000"
+    environment:
+      - SECRET_KEY=${SECRET_KEY}
+      - ACCESS_TOKEN_EXPIRE_MINUTES=${ACCESS_TOKEN_EXPIRE_MINUTES:-60}
+      - ALLOWED_ORIGINS=${ALLOWED_ORIGINS:-*}
+    volumes:
+      # Persist database
+      - clote-db:/app/clote.db
+      # Persist uploaded files and versions
+      - clote-storage:/app/storage
+      # Persist logs
+      - clote-logs:/app/logs
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/docs')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+volumes:
+  clote-db:
+  clote-storage:
+  clote-logs:

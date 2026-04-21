@@ -1,4 +1,4 @@
-# CLOTE — Self-Hosted File Management System
+# CLOTE — Self-Hosted-CLOUD with File Management and Version Control System
 
 ![Python](https://img.shields.io/badge/Python-3.13-blue)
 ![FastAPI](https://img.shields.io/badge/FastAPI-Backend-green)

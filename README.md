@@ -1,68 +1,85 @@
-# CLOTE — Self-Hosted File Management System
+# 🚀 CLOTE — Self-Hosted File Management System
+
+![Python](https://img.shields.io/badge/Python-3.13-blue)
+![FastAPI](https://img.shields.io/badge/FastAPI-Backend-green)
+![Docker](https://img.shields.io/badge/Docker-Ready-blue)
+![License](https://img.shields.io/badge/License-MIT-yellow)
 
 > Own your files. Run your cloud. No subscriptions, no third parties.
 
-CLOTE is a privacy-first, self-hosted file management platform built with FastAPI and SQLite. Upload, organize, share, and interact with your files using a built-in local AI — all running on your own machine.
+**CLOTE is a self-hosted alternative to cloud storage platforms like Google Drive and Dropbox, built for privacy, control, and extensibility.**
+
+Upload, organize, share, and interact with your files — all running locally on your own machine or server.
 
 ---
 
-## Features
+## ✨ Features
 
-- 📁 File & Folder Management — upload, download, organize, rename, delete
-- 🗂️ Projects — group files into workspaces
-- 🔗 File Sharing — generate share links for files
-- 🗑️ Trash & Restore — soft-delete with recovery
-- 📦 Bulk Operations — select and act on multiple files at once
-- 📜 Audit Logs — track every action (who, what, when)
-- 🤖 AI Assistant — chat with your files using a local LLM via Ollama
-- 🔐 JWT Authentication — secure login with encrypted passwords
-- 🗃️ File Versioning — keeps previous versions of updated files
-- 🌐 Remote Access — works over Tailscale VPN without exposing to internet
-
----
-
-## Tech Stack
-
-| Layer | Technology |
-|---|---|
-| Language | Python 3.13 |
-| Framework | FastAPI |
-| Server | Uvicorn |
-| Database | SQLite |
-| Auth | JWT + bcrypt |
-| AI | Ollama (local LLM) |
-| Frontend | Single HTML file |
-| Deployment | Docker / systemd |
+* 📁 File & Folder Management — upload, download, organize, rename, delete
+* 🗂️ Projects — group files into workspaces
+* 🔗 File Sharing — generate share links for files
+* 🗑️ Trash & Restore — soft-delete with recovery
+* 📦 Bulk Operations — select and act on multiple files at once
+* 📜 Audit Logs — track every action (who, what, when)
+* 🤖 AI Assistant — chat with your files using a local LLM via Ollama
+* 🔐 JWT Authentication — secure login with encrypted passwords
+* 🗃️ File Versioning — keeps previous versions of updated files
+* 🌐 Remote Access — works over Tailscale VPN without exposing to internet
 
 ---
 
-## Quick Start (Docker — Recommended)
+## 💡 Why CLOTE?
 
-**Requirements:** [Docker Desktop](https://www.docker.com/products/docker-desktop/)
+* No vendor lock-in — your data stays with you
+* Fully self-hosted — no external dependency
+* Built-in AI assistant (local, privacy-first)
+* Simple deployment using Docker
+* Lightweight yet powerful alternative to cloud storage tools
+
+---
+
+## 📸 Screenshots
+
+> (Add your screenshots in `docs/images/`)
+
+### Dashboard
+
+![Dashboard](docs/images/dashboard.png)
+
+### File Management
+
+![Files](docs/images/files.png)
+
+### AI Assistant
+
+![AI](docs/images/ai.png)
+
+---
+
+## ⚡ Quick Start (Docker — Recommended)
+
+**Requirements:** Docker
 
 ```bash
-# 1. Clone the repo
 git clone -b dev https://github.com/nithishvenkat4/CLOTE.git
 cd CLOTE
-
-# 2. Create your config
 cp .env.example .env
-# Open .env and set your SECRET_KEY
+# Edit SECRET_KEY inside .env
 
-# 3. Run
 docker compose up -d
 ```
 
-Open `http://localhost:8000` in your browser.
+Open: http://localhost:8000
 
 **Stop:**
+
 ```bash
 docker compose down
 ```
 
 ---
 
-## Manual Setup (Without Docker)
+## 🧪 Manual Setup (Without Docker)
 
 **Requirements:** Python 3.13+
 
@@ -83,47 +100,47 @@ uvicorn main:app --host 0.0.0.0 --port 8000 --reload
 
 ---
 
-## Environment Variables
+## ⚙️ Environment Variables
 
 Copy `.env.example` to `.env` and configure:
 
-| Variable | Description | Default |
-|---|---|---|
-| `SECRET_KEY` | JWT signing secret (required) | — |
-| `ACCESS_TOKEN_EXPIRE_MINUTES` | Session duration | `60` |
-| `ALLOWED_ORIGINS` | CORS origins | `*` |
-| `SMTP_USER` | Email for notifications | optional |
-| `SMTP_PASS` | Email app password | optional |
-| `OLLAMA_HOST` | Ollama server URL | `http://localhost:11434` |
-| `OLLAMA_MODEL` | LLM model to use | `llama3.2` |
+| Variable                      | Description                   | Default                  |
+| ----------------------------- | ----------------------------- | ------------------------ |
+| `SECRET_KEY`                  | JWT signing secret (required) | —                        |
+| `ACCESS_TOKEN_EXPIRE_MINUTES` | Session duration              | `60`                     |
+| `ALLOWED_ORIGINS`             | CORS origins                  | `*`                      |
+| `SMTP_USER`                   | Email for notifications       | optional                 |
+| `SMTP_PASS`                   | Email app password            | optional                 |
+| `OLLAMA_HOST`                 | Ollama server URL             | `http://localhost:11434` |
+| `OLLAMA_MODEL`                | LLM model to use              | `llama3.2`               |
 
 ---
 
-## AI Features (Optional)
+## 🤖 AI Features (Optional)
 
-CLOTE can connect to a local [Ollama](https://ollama.com) instance for AI-powered file interactions.
+CLOTE can connect to a local Ollama instance for AI-powered file interaction.
 
 ```bash
-# Install Ollama, then pull a model
 ollama pull llama3.2
 ```
 
-Set `OLLAMA_HOST` and `OLLAMA_MODEL` in your `.env`. If Ollama is not running, all other features work normally.
+Set `OLLAMA_HOST` and `OLLAMA_MODEL` in your `.env`.
+If Ollama is not running, all other features work normally.
 
 ---
 
-## Project Structure
+## 🧱 Project Structure
 
 ```
 CLOTE/
 ├── client/
-│   └── CLOTE.html          # Frontend UI
+│   └── CLOTE.html
 ├── server/
-│   ├── main.py             # App entry point
-│   ├── auth.py             # Authentication logic
-│   ├── config.py           # Environment config
-│   ├── database.py         # SQLite setup
-│   ├── requirements.txt    # Python dependencies
+│   ├── main.py
+│   ├── auth.py
+│   ├── config.py
+│   ├── database.py
+│   ├── requirements.txt
 │   ├── routes/
 │   │   ├── auth_routes.py
 │   │   ├── file_routes.py
@@ -135,17 +152,17 @@ CLOTE/
 │   │   ├── audit_routes.py
 │   │   └── ai_routes.py
 │   └── storage/
-│       ├── files/          # Uploaded files
-│       └── versions/       # File version history
+│       ├── files/
+│       └── versions/
 ├── Dockerfile
 ├── docker-compose.yml
 ├── .env.example
-└── install.sh              # Linux one-command installer
+└── install.sh
 ```
 
 ---
 
-## Linux Server Install (One Command)
+## 🐧 Linux Server Install (One Command)
 
 ```bash
 sudo bash install.sh
@@ -155,18 +172,40 @@ Installs CLOTE as a systemd service that starts automatically on boot.
 
 ---
 
-## API Docs
+## 📡 API Docs
 
-When running, visit `http://localhost:8000/docs` for the full interactive API documentation (Swagger UI).
+When running, visit:
+
+http://localhost:8000/docs
+
+for interactive Swagger API documentation.
 
 ---
 
-## License
+## 🔮 Future Improvements
+
+* Web-based multi-user management
+* Mobile-friendly UI
+* External storage integrations
+* Advanced search & indexing
+* Role-based access control
+
+---
+
+## 🤝 Contributing
+
+Contributions are welcome!
+Feel free to fork the repo and submit a pull request.
+
+---
+
+## 📄 License
 
 MIT — free to use, modify, and self-host.
 
 ---
 
-## Author
+## 👨‍💻 Author
 
-Built by [Nithish V](https://github.com/nithishvenkat4)
+Built by Nithish V
+https://github.com/nithishvenkat4

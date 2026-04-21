@@ -30,7 +30,7 @@ config.secret.py
 server/storage/files
 *.pdf
 *.jpg
-*.png
+
 
 .env
 server/venv/

@@ -38,16 +38,6 @@ It is designed as a privacy-first alternative to cloud storage systems, giving u
 
 ---
 
-## Screenshots
-
-Add screenshots in the `docs/images/` directory.
-
-* Dashboard view
-* File management interface
-* AI assistant interaction
-
----
-
 ## Quick Start (Docker)
 
 **Requirements:** Docker
